@@ -96,7 +96,6 @@ namespace KIStudy
         {
             var blocks = new List<Block>();
             blocks.Add(new SectionBlock { Text = new Markdown{ Text = $"<{info.TitleLink}|*{info.Title}*>\n{info.Text}" } });
-            // https://api.slack.com/reference/surfaces/formatting
             // https://api.slack.com/block-kit
             return blocks;
         }
