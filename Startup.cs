@@ -1,16 +1,16 @@
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 
-[assembly: FunctionsStartup(typeof(KIStudy.Startup))]
+[assembly: FunctionsStartup(typeof(AzureAlerts2Slack.Startup))]
 
-namespace KIStudy
+namespace AzureAlerts2Slack
 {
     public class Startup : FunctionsStartup
     {
         public override void Configure(IFunctionsHostBuilder builder)
         {
             builder.Services.AddHttpClient();
-            builder.Services.AddSingleton<ISlackSender>(sp => new SlackSenderPlain());
+            builder.Services.AddSingleton<ISlackSender>(sp => new SlackSenders.SlackSenderFallback());
             builder.Services.AddLogging();
         }
     }

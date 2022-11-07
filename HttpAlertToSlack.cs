@@ -12,7 +12,7 @@ using SlackNet;
 using System.Linq;
 using SlackNet.WebApi;
 
-namespace KIStudy
+namespace AzureAlerts2Slack
 {
     public static class HttpAlertToSlack
     {
@@ -23,7 +23,7 @@ namespace KIStudy
             Microsoft.Extensions.Logging.ILogger log)
         {
             // TODO: for some reason, DI for ISlackSender doesn't work - causes 500 on startup with no further information
-            ISlackSender sender = new SlackSenderPlain();
+            ISlackSender sender = new SlackSenders.SlackSenderFallback();
             var requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             log.LogInformation(requestBody);
 
@@ -36,7 +36,7 @@ namespace KIStudy
             Exception? parseException = null;
             try 
             {
-                items = AlertPayloadParser.Parse(requestBody);
+                items = AlertInfo.Process(requestBody);
             }
             catch (Exception ex)
             {

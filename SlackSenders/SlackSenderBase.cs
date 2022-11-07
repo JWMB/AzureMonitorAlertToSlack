@@ -4,13 +4,8 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SlackNet.WebApi;
 
-namespace KIStudy
+namespace AzureAlerts2Slack.SlackSenders
 {
-    public interface ISlackSender
-    {
-        Task<string> SendAlert(object body, string? slackWebhook = null);
-    }
-
     public abstract class SlackSenderBase : ISlackSender
     {
         private static string Serialize(Message message)
@@ -41,31 +36,5 @@ namespace KIStudy
         }
 
         public abstract Task<string> SendAlert(object body, string? slackWebhook = null);
-    }
-
-    public class SlackSenderPlain : SlackSenderBase
-    {
-        private static HttpClient? client;
-        public override async Task<string> SendAlert(object body, string? slackWebhook = null)
-        {
-            if (client == null)
-            {
-                client = new HttpClient();
-            }
-            return await base.Send(client, body, slackWebhook);
-        }
-    }
-
-    public class SlackSender : SlackSenderBase
-    {
-        private readonly IHttpClientFactory factory;
-
-        public SlackSender(IHttpClientFactory factory)
-        {
-            this.factory = factory;
-        }
-
-        public override async Task<string> SendAlert(object body, string? slackWebhook = null) =>
-             await base.Send(factory.CreateClient(), body, slackWebhook);
     }
 }
