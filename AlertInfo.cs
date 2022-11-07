@@ -26,7 +26,7 @@ namespace AzureAlerts2Slack
                 if (ctxV2.Condition.AllOf is Types.AlertContexts.LogAlertsV2.LogQueryCriteriaCondition[] condLQ) {
                     slackItems.AddRange(condLQ.Select(o => new AlertInfo {
                         Title = alert.Data.Essentials.AlertRule,
-                        Text = $"{ctxV2.Condition.ToUserFriendlyString()}", //o.ToUserFriendlyString()
+                        Text = $"{ctxV2.Condition.ToUserFriendlyString()}",
                         TitleLink = $"{o.LinkToFilteredSearchResultsUi}"
                     }));
                 }

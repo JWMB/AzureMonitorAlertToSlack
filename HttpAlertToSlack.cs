@@ -19,10 +19,11 @@ namespace AzureAlerts2Slack
         [FunctionName("HttpAlertToSlack")]
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
+            // TODO: for some reason, DI for ISlackSender doesn't work - causes 500 on startup with no further information
+            // Creating it explicitly instead :()
             //ISlackSender sender,
             Microsoft.Extensions.Logging.ILogger log)
         {
-            // TODO: for some reason, DI for ISlackSender doesn't work - causes 500 on startup with no further information
             ISlackSender sender = new SlackSenders.SlackSenderFallback();
             var requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             log.LogInformation(requestBody);
@@ -50,15 +51,13 @@ namespace AzureAlerts2Slack
 
             var slackBody = new Message {
                 Attachments = items.Select(CreateSlackAttachment).ToList(),
+                // TODO: should we use Blocks instead?
+                // Blocks = new Block[] {
+                //         new HeaderBlock { Text = "My header" }
+                //     }.Concat(
+                //         items.SelectMany(CreateSlackBlocks)
+                //     ).ToList()
             };
-            // var slackBody = new Message {
-            //     Blocks = new Block[] {
-            //         new HeaderBlock { Text = "My header" }
-            //     }.Concat(
-            //         items.SelectMany(CreateSlackBlocks)
-            //     )
-            //     .ToList()
-            // };
 
             try
             {
@@ -75,18 +74,6 @@ namespace AzureAlerts2Slack
                 : new OkObjectResult("");
         }
 
-        private static object CreateSlackAttachmentObject(AlertInfo info)
-        {
-            return new 
-            {
-                 title = info.Title,
-                 title_link = info.TitleLink,
-                 text = info.Text,
-                 color = string.IsNullOrEmpty(info.Color) ? "#FF5500" : info.Color,
-                 fallback = info.Text
-            };
-        }
-
         private static Attachment CreateSlackAttachment(AlertInfo info)
         {
             return new Attachment
@@ -101,10 +88,10 @@ namespace AzureAlerts2Slack
 
         private static List<Block> CreateSlackBlocks(AlertInfo info)
         {
-            var blocks = new List<Block>();
-            blocks.Add(new SectionBlock { Text = new Markdown{ Text = $"<{info.TitleLink}|*{info.Title}*>\n{info.Text}" } });
             // https://api.slack.com/block-kit
-            return blocks;
+            return new List<Block>{
+                new SectionBlock { Text = new Markdown{ Text = $"<{info.TitleLink}|*{info.Title}*>\n{info.Text}" } }
+            };
         }
     }
 }
