@@ -33,14 +33,19 @@ namespace KIStudy
             }
 
             List<AlertInfo> items;
+            Exception? parseException = null;
             try 
             {
                 items = AlertPayloadParser.Parse(requestBody);
             }
             catch (Exception ex)
             {
+                parseException = ex;
+                items = new List<AlertInfo>{ 
+                    new AlertInfo{ Title = "Unknown alert", Text = ex.Message },
+                    new AlertInfo{ Title = "Body", Text = requestBody }
+                };
                 log.LogError(ex.Message);
-                return new BadRequestObjectResult($"Could not read body: {ex.Message}");
             }
 
             var slackBody = new Message {
@@ -65,7 +70,9 @@ namespace KIStudy
                 return new BadRequestObjectResult($"Failed to send message: {ex.Message} ({ex.GetType().Name})"); // TODO: some other response type
             }
 
-            return new OkObjectResult("");
+            return parseException != null
+                ? new BadRequestObjectResult($"Could not read body: {parseException.Message}")
+                : new OkObjectResult("");
         }
 
         private static object CreateSlackAttachmentObject(AlertInfo info)

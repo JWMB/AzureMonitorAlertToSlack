@@ -50,12 +50,9 @@ namespace KIStudy
                 });
             }
             // else if (ctx is Types.AlertContexts.SmartAlert.AlertContext ctxSA)
-            // {
-            //     slackItems.Add(new AlertInfo{
-            //         Title = alertx.Data.Essentials.AlertRule,
-            //         Text = $"{ctxSA.ToUserFriendlyString()}",
-            //     });
-            // }
+            // { }
+            // else if (ctx is Types.AlertContexts.ServiceHealth.AlertContext ctxSA)
+            // { }
             else
             {
                 slackItems.Add(new AlertInfo{
@@ -64,6 +61,8 @@ namespace KIStudy
                 });
             }
 
+            if (!slackItems.Any())
+                throw new Exception($"No items produced");
             return slackItems;
         }
     }
