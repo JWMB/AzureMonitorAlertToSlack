@@ -24,7 +24,7 @@ namespace KIStudy
             if (alertx == null || ctx == null)
                 throw new Exception($"Not supported: {alertx?.Data?.Essentials?.MonitoringService}");
 
-            if (ctx is Types.AlertContexts.LogAlertsV2.AlertContext ctxV2) {
+            if (ctx is Types.AlertContexts.LogAlertsV2AlertContext ctxV2) {
                 if (ctxV2.Condition.AllOf is Types.AlertContexts.LogAlertsV2.LogQueryCriteriaCondition[] condLQ) {
                     slackItems.AddRange(condLQ.Select(o => new AlertInfo {
                         Title = alertx.Data.Essentials.AlertRule,
@@ -33,14 +33,14 @@ namespace KIStudy
                     }));
                 }
             }
-            else if (ctx is Types.AlertContexts.ActivityLog.AlertContext ctxAL)
+            else if (ctx is Types.AlertContexts.ActivityLogAlertContext ctxAL)
             {
                 slackItems.Add(new AlertInfo{
                     Title = alertx.Data.Essentials.AlertRule,
                     Text = $"{ctxAL.ToUserFriendlyString()}",
                 });
             }
-            else if (ctx is Types.AlertContexts.LogAnalyticsAlert.AlertContext ctxLA)
+            else if (ctx is Types.AlertContexts.LogAnalyticsAlertContext ctxLA)
             {
                 slackItems.Add(new AlertInfo{
                     Title = alertx.Data.Essentials.AlertRule,
@@ -49,9 +49,9 @@ namespace KIStudy
 
                 });
             }
-            // else if (ctx is Types.AlertContexts.SmartAlert.AlertContext ctxSA)
+            // else if (ctx is Types.AlertContexts.SmartAlertContext ctxSA)
             // { }
-            // else if (ctx is Types.AlertContexts.ServiceHealth.AlertContext ctxSA)
+            // else if (ctx is Types.AlertContexts.ServiceHealthAlertContext ctxSA)
             // { }
             else
             {
