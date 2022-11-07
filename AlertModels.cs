@@ -31,6 +31,4 @@ namespace KIStudy
         public string AlertContextVersion { get; set; } = string.Empty;
         public string? FormattedFiredDateTime => FiredDateTime?.ToString("yyyy-MM-dd HH:mm:ss") ?? string.Empty;
     }
-
-    
 }
