@@ -17,13 +17,13 @@ namespace AzureAlerts2Slack
         {
             var slackItems = new List<AlertInfo>();
 
-            var alert = Types.AlertJsonSerializerSettings.DeserializeOrThrow(requestBody);
+            var alert = Types.Serialization.AlertJsonSerializerSettings.DeserializeOrThrow(requestBody);
             var ctx = alert?.Data.AlertContext;
             if (alert == null || ctx == null)
                 throw new Exception($"Not supported: {alert?.Data?.Essentials?.MonitoringService}");
 
             if (ctx is Types.AlertContexts.LogAlertsV2AlertContext ctxV2) {
-                if (ctxV2.Condition.AllOf is Types.AlertContexts.LogAlertsV2.LogQueryCriteriaCondition[] condLQ) {
+                if (ctxV2.Condition.AllOf is Types.AlertContexts.LogAlertsV2.LogQueryCriteria[] condLQ) {
                     slackItems.AddRange(condLQ.Select(o => new AlertInfo {
                         Title = alert.Data.Essentials.AlertRule,
                         Text = $"{ctxV2.Condition.ToUserFriendlyString()}",
