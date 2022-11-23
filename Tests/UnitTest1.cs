@@ -15,24 +15,26 @@ namespace Tests
         [Fact]
         public async Task LogSearchAlerts()
         {
-            var requestBody = File.ReadAllText(@"Payloads\logSearchAlerts.json");
+            var requestBody = File.ReadAllText(@"Payloads\Log alert V1 - Metric.json");
             var items = await AlertInfo.Process(requestBody, null);
 
             var expected = @"
-1 > 0
+2 > 0
 ```
-|Computer        |SvcName|SvcState|SvcDisplayName|TimeGenerated      |
-|----------------|-------|--------|--------------|-------------------|
-|FS01.Sandlot.dom|Spooler|Stopped |Print Spooler |09/14/2019 02:41:43|
+|TimeGenerated      |AggregatedValue|
+|-------------------|---------------|
+|11/23/2022 16:31:12|11             |
+|11/23/2022 16:31:12|11             |
 ```
 ";
-            items.Single().Text.ShouldBe(expected.Trim().Replace("\r", ""));
+            items.Single().Text.ShouldBe(TrimTable(expected));
+            items.Single().TitleLink.ShouldNotBeEmpty();
         }
 
         [Fact]
         public async Task LogQueryCriteria()
         {
-            var requestBody = File.ReadAllText(@"Payloads\platform.json");
+            var requestBody = File.ReadAllText(@"Payloads\Log alert V2.json");
 
             var mock = new Mock<IAIQueryService>();
             var dt = CreateDataTable(new[] { new { Title = "A", Value = 1 }, new { Title = "B", Value = 2 } }.Cast<object>().ToList());
@@ -41,7 +43,7 @@ namespace Tests
             var items = await AlertInfo.Process(requestBody, mock.Object);
 
             var expected = @"
-Heartbeat/CounterValue: 0 < 1
+Heartbeat/MMC: 3 > 0
 ```
 |Title|Value|
 |-----|-----|
@@ -50,9 +52,11 @@ Heartbeat/CounterValue: 0 < 1
 ```
 ";
             items.Single().Text.ShouldBe(TrimTable(expected));
+            items.Single().TitleLink.ShouldNotBeEmpty();
         }
 
         private static string TrimTable(string str) => str.Trim().Replace("\r", "");
+
         [Fact]
         public void TableToMarkdown()
         {

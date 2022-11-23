@@ -29,10 +29,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Payloads\logSearchAlerts.json">
+    <None Update="Payloads\Log alert V1 - Metric.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Payloads\platform.json">
+    <None Update="Payloads\Log alert V2.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
