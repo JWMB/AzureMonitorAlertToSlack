@@ -10,6 +10,8 @@
     <PackageReference Include="Microsoft.Extensions.Http" Version="6.0.0"/>
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0"/>
     <PackageReference Include="JWMB.AzureMonitorCommonAlertSchemaTypes" Version="*"/>
+    <PackageReference Include="Azure.Monitor.Query" Version="1.1.0"/>
+    <PackageReference Include="Azure.Identity" Version="1.8.0"/>
   </ItemGroup>
   <ItemGroup>
     <None Update="host.json">

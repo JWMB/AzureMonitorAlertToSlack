@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Types;
+using Types.AlertContexts;
+using Types.AlertContexts.LogAlertsV2;
 
 namespace AzureAlerts2Slack
 {
@@ -22,56 +25,82 @@ namespace AzureAlerts2Slack
             if (alert == null || ctx == null)
                 throw new Exception($"Not supported: {alert?.Data?.Essentials?.MonitoringService}");
 
-            if (ctx is Types.AlertContexts.LogAlertsV2AlertContext ctxV2) {
-                var items = ctxV2.Condition.AllOf?.Select(o => new AlertInfo {
-                        Title = alert.Data.Essentials.AlertRule,
-                        Text = o.ToUserFriendlyString(),
-                        TitleLink = GetTitleLink(o)
-                    });
-                if (items == null)
-                    items = new[] { new AlertInfo{ Title = alert.Data.Essentials.AlertRule, Text = ctxV2.Condition.ToUserFriendlyString() }};
-                
-                slackItems.AddRange(items);
+            if (ctx is LogAlertsV2AlertContext ctxV2)
+            {
+                await foreach (var item in CreateFromLogAlertsV2(alert, ctxV2))
+                    slackItems.Add(item);
+                //var items = ctxV2.Condition.AllOf?.ToAsyncEnumerable().SelectAwait(async o => new AlertInfo
+                //{
+                //    Title = alert.Data.Essentials.AlertRule,
+                //    Text = await GetText(ctx, o),
+                //    TitleLink = GetTitleLink(o)
+                //});
+
+                    //if (items == null)
+                    //    slackItems.Add(new AlertInfo { Title = alert.Data.Essentials.AlertRule, Text = ctxV2.Condition.ToUserFriendlyString() });
+                    //else
+                    //    await foreach (var item in items)
+                    //        slackItems.Add(item);
             }
             // In case we want specially tailored info rather than the generic ToUserFriendlyString:
-            // else if (ctx is Types.AlertContexts.ActivityLogAlertContext ctxAL)
-            // else if (ctx is Types.AlertContexts.LogAnalyticsAlertContext ctxLA)
-            // else if (ctx is Types.AlertContexts.SmartAlertContext ctxSA)
-            // else if (ctx is Types.AlertContexts.ServiceHealthAlertContext ctxSA)
+            // else if (ctx is ActivityLogAlertContext ctxAL)
+            // else if (ctx is LogAnalyticsAlertContext ctxLA)
+            // else if (ctx is SmartAlertContext ctxSA)
+            // else if (ctx is ServiceHealthAlertContext ctxSA)
             else
             {
-                slackItems.Add(new AlertInfo{
+                slackItems.Add(new AlertInfo
+                {
                     Title = alert.Data.Essentials.AlertRule,
                     Text = $"{ctx.ToUserFriendlyString()}",
-                    TitleLink = ctx is Types.AlertContexts.LogAnalyticsAlertContext ctxLA ? ctxLA.LinkToFilteredSearchResultsUi?.ToString() : null
+                    TitleLink = ctx is LogAnalyticsAlertContext ctxLA ? ctxLA.LinkToFilteredSearchResultsUi?.ToString() : null
                 });
             }
 
             if (!slackItems.Any())
                 throw new Exception($"No items produced");
             return slackItems;
+        }
 
-            async Task<string> GetText(Types.AlertContexts.LogAlertsV2.IConditionPart cond)
+        public static async IAsyncEnumerable<AlertInfo> CreateFromLogAlertsV2(Alert alert, LogAlertsV2AlertContext ctxV2)
+        {
+            var items = ctxV2.Condition.AllOf?.ToAsyncEnumerable().SelectAwait(async o => new AlertInfo
             {
-                if (cond is Types.AlertContexts.LogAlertsV2.LogQueryCriteria lq)
+                Title = alert.Data.Essentials.AlertRule,
+                Text = await GetText(o),
+                TitleLink = GetTitleLink(o)
+            });
+
+            if (items == null)
+                yield return new AlertInfo { Title = alert.Data.Essentials.AlertRule, Text = ctxV2.Condition.ToUserFriendlyString() };
+            else
+                await foreach (var item in items)
+                    yield return item;
+
+
+            async Task<string> GetText(IConditionPart cond)
+            {
+                if (cond is LogQueryCriteria lq)
                 {
+                    if (!string.IsNullOrEmpty(lq.SearchQuery))
+                        await new AIQuery().XI(lq.SearchQuery, ctxV2.Condition.WindowStartTime, ctxV2.Condition.WindowEndTime);
                 }
                 return "";
             }
 
-            string? GetTitleLink(Types.AlertContexts.LogAlertsV2.IConditionPart cond)
+            string? GetTitleLink(IConditionPart cond)
             {
-                return cond switch 
+                return cond switch
                 {
-                    Types.AlertContexts.LogAlertsV2.LogQueryCriteria lq =>
+                    LogQueryCriteria lq =>
                         lq.LinkToSearchResultsUi?.ToString(),
-                    Types.AlertContexts.LogAlertsV2.SingleResourceMultipleMetricCriteria srmm =>
+                    SingleResourceMultipleMetricCriteria srmm =>
                         null,
-                    Types.AlertContexts.LogAlertsV2.DynamicThresholdCriteria dt =>
+                    DynamicThresholdCriteria dt =>
                         null,
-                    Types.AlertContexts.LogAlertsV2.WebtestLocationAvailabilityCriteria wla =>
+                    WebtestLocationAvailabilityCriteria wla =>
                         null,
-                    _ => 
+                    _ =>
                         null
                 };
             }
