@@ -11,6 +11,7 @@ using SlackNet.Blocks;
 using SlackNet;
 using System.Linq;
 using SlackNet.WebApi;
+using System.Runtime.CompilerServices;
 
 namespace AzureAlerts2Slack
 {
@@ -78,11 +79,12 @@ namespace AzureAlerts2Slack
         {
             return new Attachment
             {
-                 Title = info.Title,
-                 TitleLink = info.TitleLink,
-                 Text = info.Text,
+                 //Title = info.Title,
+                 //TitleLink = info.TitleLink,
+                 //Text = info.Text,
                  Color = string.IsNullOrEmpty(info.Color) ? "#FF5500" : info.Color,
-                 Fallback = info.Text
+                 Fallback = info.Text,
+                 Blocks = CreateSlackBlocks(info)
             };
         }
 
@@ -90,8 +92,10 @@ namespace AzureAlerts2Slack
         {
             // https://api.slack.com/block-kit
             return new List<Block>{
-                new SectionBlock { Text = new Markdown{ Text = $"<{info.TitleLink}|*{info.Title}*>\n{info.Text}" } }
+                new SectionBlock { Text = new Markdown{ Text = $"{MakeLink($"*{info.Title}*", info.TitleLink)}\n{info.Text}" } }
             };
+
+            string MakeLink(string text, string? url) => string.IsNullOrEmpty(url) ? text : $"<{url}|{text}>";
         }
     }
 }
