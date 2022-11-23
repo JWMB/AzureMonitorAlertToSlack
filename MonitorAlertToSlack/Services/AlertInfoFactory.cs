@@ -103,18 +103,41 @@ namespace AzureFunctionSlackAlert.Services
 
         public static async IAsyncEnumerable<AlertInfo> CreateFromLogAlertsV2(Alert alert, LogAlertsV2AlertContext ctxV2, IAIQueryService? aiQueryService)
         {
-            var items = ctxV2.Condition.AllOf?.ToAsyncEnumerable().SelectAwait(async o => new AlertInfo
+            if (ctxV2.Condition.AllOf?.Any() == true)
             {
-                Title = alert.Data.Essentials.AlertRule,
-                Text = await GetText(o),
-                TitleLink = GetTitleLink(o)
-            });
-
-            if (items == null)
-                yield return new AlertInfo { Title = alert.Data.Essentials.AlertRule, Text = ctxV2.Condition.ToUserFriendlyString(), TitleLink = GetTitleLink(ctxV2.Condition.AllOf?.FirstOrDefault()) };
+                foreach (var item in ctxV2.Condition.AllOf)
+                {
+                    yield return new AlertInfo
+                    {
+                        Title = alert.Data.Essentials.AlertRule,
+                        Text = await GetText(item),
+                        TitleLink = GetTitleLink(item)
+                    };
+                }
+            }
             else
-                await foreach (var item in items)
-                    yield return item;
+            {
+                yield return new AlertInfo
+                {
+                    Title = alert.Data.Essentials.AlertRule,
+                    Text = ctxV2.Condition.ToUserFriendlyString(),
+                    TitleLink = GetTitleLink(ctxV2.Condition.AllOf?.FirstOrDefault())
+                };
+            }
+
+            // ToAsyncEnumerable not available in .netstandard 2.0
+            //var items = ctxV2.Condition.AllOf?.ToAsyncEnumerable().SelectAwait(async o => new AlertInfo
+            //{
+            //    Title = alert.Data.Essentials.AlertRule,
+            //    Text = await GetText(o),
+            //    TitleLink = GetTitleLink(o)
+            //});
+
+            //if (items == null)
+            //    yield return new AlertInfo { Title = alert.Data.Essentials.AlertRule, Text = ctxV2.Condition.ToUserFriendlyString(), TitleLink = GetTitleLink(ctxV2.Condition.AllOf?.FirstOrDefault()) };
+            //else
+            //    await foreach (var item in items)
+            //        yield return item;
 
 
             async Task<string> GetText(IConditionPart cond)

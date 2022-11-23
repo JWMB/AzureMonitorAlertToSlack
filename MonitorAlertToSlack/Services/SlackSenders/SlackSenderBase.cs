@@ -23,7 +23,7 @@ namespace AzureFunctionSlackAlert.Services.SlackSenders
             if (body is Message msg)
                 response = await client.PostAsync(slackWebhook, new StringContent(Serialize(msg)));
             else
-                response = await client.PostAsJsonAsync(slackWebhook, body);
+                response = await client.PostAsync(slackWebhook, new StringContent(JsonConvert.SerializeObject(body)));
 
             // response.EnsureSuccessStatusCode();
 
