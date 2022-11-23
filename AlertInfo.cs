@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Newtonsoft.Json;
+using System.Threading.Tasks;
 
 namespace AzureAlerts2Slack
 {
@@ -13,7 +13,7 @@ namespace AzureAlerts2Slack
         public string Text { get; set; } = "";
         public string? Color { get; set; }
 
-        public static List<AlertInfo> Process(string requestBody)
+        public static async Task<List<AlertInfo>> Process(string requestBody)
         {
             var slackItems = new List<AlertInfo>();
 
@@ -51,6 +51,14 @@ namespace AzureAlerts2Slack
                 throw new Exception($"No items produced");
             return slackItems;
 
+            async Task<string> GetText(Types.AlertContexts.LogAlertsV2.IConditionPart cond)
+            {
+                if (cond is Types.AlertContexts.LogAlertsV2.LogQueryCriteria lq)
+                {
+                }
+                return "";
+            }
+
             string? GetTitleLink(Types.AlertContexts.LogAlertsV2.IConditionPart cond)
             {
                 return cond switch 
@@ -66,15 +74,6 @@ namespace AzureAlerts2Slack
                     _ => 
                         null
                 };
-                // if (cond is Types.AlertContexts.LogAlertsV2.LogQueryCriteria lq)
-                //     return lq.LinkToSearchResultsUi?.ToString();
-                // if (cond is Types.AlertContexts.LogAlertsV2.SingleResourceMultipleMetricCriteria srmm)
-                //     return null;
-                // if (cond is Types.AlertContexts.LogAlertsV2.DynamicThresholdCriteria dt)
-                //     return null;
-                // if (cond is Types.AlertContexts.LogAlertsV2.WebtestLocationAvailabilityCriteria wla)
-                //     return null;
-                // return null;
             }
         }
     }
