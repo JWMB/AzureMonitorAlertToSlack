@@ -23,14 +23,17 @@ namespace AzureAlerts2Slack
                 throw new Exception($"Not supported: {alert?.Data?.Essentials?.MonitoringService}");
 
             if (ctx is Types.AlertContexts.LogAlertsV2AlertContext ctxV2) {
-                if (ctxV2.Condition.AllOf is Types.AlertContexts.LogAlertsV2.LogQueryCriteria[] condLQ) {
-                    slackItems.AddRange(condLQ.Select(o => new AlertInfo {
+                var items = ctxV2.Condition.AllOf?.Select(o => new AlertInfo {
                         Title = alert.Data.Essentials.AlertRule,
-                        Text = $"{ctxV2.Condition.ToUserFriendlyString()}",
-                        TitleLink = $"{o.LinkToFilteredSearchResultsUi}"
-                    }));
-                }
+                        Text = o.ToUserFriendlyString(),
+                        TitleLink = GetTitleLink(o)
+                    });
+                if (items == null)
+                    items = new[] { new AlertInfo{ Title = alert.Data.Essentials.AlertRule, Text = ctxV2.Condition.ToUserFriendlyString() }};
+                
+                slackItems.AddRange(items);
             }
+            // In case we want specially tailored info rather than the generic ToUserFriendlyString:
             // else if (ctx is Types.AlertContexts.ActivityLogAlertContext ctxAL)
             // else if (ctx is Types.AlertContexts.LogAnalyticsAlertContext ctxLA)
             // else if (ctx is Types.AlertContexts.SmartAlertContext ctxSA)
@@ -47,6 +50,32 @@ namespace AzureAlerts2Slack
             if (!slackItems.Any())
                 throw new Exception($"No items produced");
             return slackItems;
+
+            string? GetTitleLink(Types.AlertContexts.LogAlertsV2.IConditionPart cond)
+            {
+                return cond switch 
+                {
+                    Types.AlertContexts.LogAlertsV2.LogQueryCriteria lq =>
+                        lq.LinkToSearchResultsUi?.ToString(),
+                    Types.AlertContexts.LogAlertsV2.SingleResourceMultipleMetricCriteria srmm =>
+                        null,
+                    Types.AlertContexts.LogAlertsV2.DynamicThresholdCriteria dt =>
+                        null,
+                    Types.AlertContexts.LogAlertsV2.WebtestLocationAvailabilityCriteria wla =>
+                        null,
+                    _ => 
+                        null
+                };
+                // if (cond is Types.AlertContexts.LogAlertsV2.LogQueryCriteria lq)
+                //     return lq.LinkToSearchResultsUi?.ToString();
+                // if (cond is Types.AlertContexts.LogAlertsV2.SingleResourceMultipleMetricCriteria srmm)
+                //     return null;
+                // if (cond is Types.AlertContexts.LogAlertsV2.DynamicThresholdCriteria dt)
+                //     return null;
+                // if (cond is Types.AlertContexts.LogAlertsV2.WebtestLocationAvailabilityCriteria wla)
+                //     return null;
+                // return null;
+            }
         }
     }
 }
