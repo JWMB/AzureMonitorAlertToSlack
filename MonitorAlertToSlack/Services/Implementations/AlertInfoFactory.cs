@@ -7,7 +7,7 @@ using Types.AlertContexts.LogAlertsV2;
 using Types.AlertContexts;
 using Types;
 
-namespace MonitorAlertToSlack.Services
+namespace MonitorAlertToSlack.Services.Implementations
 {
     public class AlertInfoFactory : IAlertInfoFactory
     {
