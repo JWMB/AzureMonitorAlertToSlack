@@ -92,7 +92,7 @@ namespace AzureAlerts2Slack
         private static string RenderDataTable(DataTable dt)
         {
             var stringifyer = new ConvertToString(40);
-            return $"```\n{TableHelpers.TableToMarkdown(dt, (obj, type) => stringifyer.Convert(obj, type))}\n```";
+            return $"```\n{TableHelpers.TableToMarkdown(dt, (obj, type) => stringifyer.Convert(obj, type), 10)}\n```";
         }
 
         public static async IAsyncEnumerable<AlertInfo> CreateFromLogAlertsV2(Alert alert, LogAlertsV2AlertContext ctxV2, IAIQueryService? aiQueryService)
