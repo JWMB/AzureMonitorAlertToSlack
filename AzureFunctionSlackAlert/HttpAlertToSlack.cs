@@ -37,7 +37,7 @@ namespace AzureAlerts2Slack
             Exception? parseException = null;
             try 
             {
-                items = await AlertInfo.Process(requestBody);
+                items = await AlertInfo.Process(requestBody, new AIQueryService());
             }
             catch (Exception ex)
             {
