@@ -111,7 +111,7 @@ namespace AzureAlerts2Slack
             });
 
             if (items == null)
-                yield return new AlertInfo { Title = alert.Data.Essentials.AlertRule, Text = ctxV2.Condition.ToUserFriendlyString() };
+                yield return new AlertInfo { Title = alert.Data.Essentials.AlertRule, Text = ctxV2.Condition.ToUserFriendlyString(), TitleLink = GetTitleLink(ctxV2.Condition.AllOf?.FirstOrDefault()) };
             else
                 await foreach (var item in items)
                     yield return item;
@@ -130,7 +130,7 @@ namespace AzureAlerts2Slack
                 return cond.ToUserFriendlyString() + (additional == null ? "" : $"\n{additional}");
             }
 
-            string? GetTitleLink(IConditionPart cond)
+            string? GetTitleLink(IConditionPart? cond)
             {
                 return cond switch
                 {
