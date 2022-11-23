@@ -1,7 +1,7 @@
 ﻿using SlackNet.WebApi;
 using System.Collections.Generic;
 
-namespace AzureFunctionSlackAlert.Services
+namespace MonitorAlertToSlack.Services
 {
     public interface ISlackMessageFactory
     {

@@ -1,7 +1,7 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace AzureFunctionSlackAlert.Services.SlackSenders
+namespace MonitorAlertToSlack.Services.SlackSenders
 {
     public class SlackSenderDefault : SlackSenderBase
     {

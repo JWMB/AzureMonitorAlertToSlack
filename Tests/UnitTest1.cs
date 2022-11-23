@@ -1,5 +1,5 @@
-using AzureFunctionSlackAlert;
-using AzureFunctionSlackAlert.Services;
+using MonitorAlertToSlack;
+using MonitorAlertToSlack.Services;
 using Moq;
 using Shouldly;
 using System.Data;

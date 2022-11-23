@@ -7,7 +7,7 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
-using AzureFunctionSlackAlert.Services;
+using MonitorAlertToSlack.Services;
 
 namespace AzureFunctionSlackAlert
 {
@@ -21,7 +21,7 @@ namespace AzureFunctionSlackAlert
             // TODO: for some reason, DI doesn't work when deployed - causes 500 on startup with no further information
             // Creating them explicitly instead:
             IAlertInfoFactory alertInfoFactory = new AlertInfoFactory(new AIQueryService());
-            IMessageSender sender = new SlackMessageSender(new Services.SlackSenders.SlackSenderFallback(), new SlackMessageFactory());
+            IMessageSender sender = new SlackMessageSender(new MonitorAlertToSlack.Services.SlackSenders.SlackSenderFallback(), new SlackMessageFactory());
 
             var requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             //log.LogInformation(requestBody);

@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SlackNet.WebApi;
 
-namespace AzureFunctionSlackAlert.Services.SlackSenders
+namespace MonitorAlertToSlack.Services.SlackSenders
 {
     public abstract class SlackSenderBase : ISlackSender
     {

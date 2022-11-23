@@ -1,4 +1,4 @@
-namespace AzureFunctionSlackAlert.Services
+namespace MonitorAlertToSlack.Services
 {
     public class AlertInfo
     {
