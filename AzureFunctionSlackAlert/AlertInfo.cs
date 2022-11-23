@@ -82,6 +82,12 @@ namespace AzureAlerts2Slack
 
             if (!slackItems.Any())
                 throw new Exception($"No items produced");
+
+            if (Environment.GetEnvironmentVariable("DebugPayload") == "1") // TODO: change when DI problem solved
+            {
+                slackItems.Last().Text += $"\\n{requestBody}";
+            }
+
             return slackItems;
         }
 
