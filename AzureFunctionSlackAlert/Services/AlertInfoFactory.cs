@@ -1,25 +1,24 @@
-using AzureFunctionSlackAlert;
-using Microsoft.AspNetCore.Mvc;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
-using Types;
-using Types.AlertContexts;
 using Types.AlertContexts.LogAlertsV2;
+using Types.AlertContexts;
+using Types;
 
-namespace AzureAlerts2Slack
+namespace AzureFunctionSlackAlert.Services
 {
-
-   public class AlertInfo
+    public class AlertInfoFactory : IAlertInfoFactory
     {
-        public string Title { get; set; } = "";
-        public string? TitleLink { get; set; }
-        public string Text { get; set; } = "";
-        public string? Color { get; set; }
+        private readonly IAIQueryService? aiQueryService;
 
-        public static async Task<List<AlertInfo>> Process(string requestBody, IAIQueryService? aiQueryService)
+        public AlertInfoFactory(IAIQueryService? aiQueryService)
+        {
+            this.aiQueryService = aiQueryService;
+        }
+
+        public async Task<List<AlertInfo>> Process(string requestBody)
         {
             var slackItems = new List<AlertInfo>();
 
@@ -41,7 +40,7 @@ namespace AzureAlerts2Slack
                     {
                         var dt = new DataTable(o.Name);
                         foreach (var col in o.Columns)
-                            dt.Columns.Add(new DataColumn(col.Name, typeof(string))); //col.Type
+                            dt.Columns.Add(new DataColumn(col.Name, typeof(string))); // TODO: parse col.Type to actual types
 
                         foreach (var row in o.Rows)
                         {
@@ -95,6 +94,7 @@ namespace AzureAlerts2Slack
         {
             return RenderDataTable(await aiQueryService.GetQueryAsDataTable(query, start, end));
         }
+
         private static string RenderDataTable(DataTable dt)
         {
             var stringifyer = new ConvertToString(40);

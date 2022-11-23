@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SlackNet.WebApi;
 
-namespace AzureAlerts2Slack.SlackSenders
+namespace AzureFunctionSlackAlert.Services.SlackSenders
 {
     public abstract class SlackSenderBase : ISlackSender
     {
@@ -28,10 +28,8 @@ namespace AzureAlerts2Slack.SlackSenders
             // response.EnsureSuccessStatusCode();
 
             if (!response.IsSuccessStatusCode)
-            {
                 throw new Exception($"Send error: {response.StatusCode} {response.ReasonPhrase}\n{slackWebhook}\n{JsonConvert.SerializeObject(body)}\n{response.Content?.ReadAsStringAsync().Result}");
-            }
-            // return response;
+
             return response.Content.ReadAsStringAsync().Result;
         }
 

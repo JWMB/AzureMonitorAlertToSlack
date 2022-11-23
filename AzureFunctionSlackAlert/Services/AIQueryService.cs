@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -6,11 +6,6 @@ using System.Threading.Tasks;
 using Azure.Identity;
 using Azure.Monitor.Query;
 using Azure.Monitor.Query.Models;
-
-public interface IAIQueryService
-{
-    Task<DataTable> GetQueryAsDataTable(string query, DateTimeOffset start, DateTimeOffset end);
-}
 
 public class AIQueryService : IAIQueryService
 {

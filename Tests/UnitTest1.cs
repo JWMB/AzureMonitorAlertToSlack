@@ -1,12 +1,8 @@
-using AutoFixture;
-using AutoFixture.AutoMoq;
-using AzureAlerts2Slack;
 using AzureFunctionSlackAlert;
+using AzureFunctionSlackAlert.Services;
 using Moq;
-using Newtonsoft.Json.Linq;
 using Shouldly;
 using System.Data;
-using Types.AlertContexts;
 
 namespace Tests
 {
@@ -16,7 +12,7 @@ namespace Tests
         public async Task LogSearchAlerts()
         {
             var requestBody = File.ReadAllText(@"Payloads\Log alert V1 - Metric.json");
-            var items = await AlertInfo.Process(requestBody, null);
+            var items = await new AlertInfoFactory(null).Process(requestBody);
 
             var expected = @"
 2 > 0
@@ -40,7 +36,7 @@ namespace Tests
             var dt = CreateDataTable(new[] { new { Title = "A", Value = 1 }, new { Title = "B", Value = 2 } }.Cast<object>().ToList());
             mock.Setup(o => o.GetQueryAsDataTable(It.IsAny<string>(), It.IsAny<DateTimeOffset>(), It.IsAny<DateTimeOffset>())).ReturnsAsync(() => dt);
 
-            var items = await AlertInfo.Process(requestBody, mock.Object);
+            var items = await new AlertInfoFactory(mock.Object).Process(requestBody);
 
             var expected = @"
 Heartbeat/MMC: 3 > 0

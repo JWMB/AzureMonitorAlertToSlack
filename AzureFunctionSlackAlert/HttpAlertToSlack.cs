@@ -7,27 +7,24 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
-using SlackNet.Blocks;
-using SlackNet;
-using System.Linq;
-using SlackNet.WebApi;
-using System.Runtime.CompilerServices;
+using AzureFunctionSlackAlert.Services;
 
-namespace AzureAlerts2Slack
+namespace AzureFunctionSlackAlert
 {
     public static class HttpAlertToSlack
     {
         [FunctionName("HttpAlertToSlack")]
         public static async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
-            // TODO: for some reason, DI for ISlackSender doesn't work - causes 500 on startup with no further information
-            // Creating it explicitly instead :()
-            //ISlackSender sender,
-            Microsoft.Extensions.Logging.ILogger log)
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req,
+            ILogger log)
         {
-            ISlackSender sender = new SlackSenders.SlackSenderFallback();
+            // TODO: for some reason, DI doesn't work when deployed - causes 500 on startup with no further information
+            // Creating them explicitly instead:
+            IAlertInfoFactory alertInfoFactory = new AlertInfoFactory(new AIQueryService());
+            IMessageSender sender = new SlackMessageSender(new Services.SlackSenders.SlackSenderFallback(), new SlackMessageFactory());
+
             var requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            log.LogInformation(requestBody);
+            //log.LogInformation(requestBody);
 
             if (requestBody == null)
             {
@@ -38,31 +35,23 @@ namespace AzureAlerts2Slack
             Exception? parseException = null;
             try 
             {
-                items = await AlertInfo.Process(requestBody, new AIQueryService());
+                items = await alertInfoFactory.Process(requestBody);
             }
             catch (Exception ex)
             {
+                log.LogError(ex.Message);
+
+                // Don't throw immediately - let this error message be sent first
                 parseException = ex;
                 items = new List<AlertInfo>{ 
                     new AlertInfo{ Title = "Unknown alert", Text = ex.Message },
                     new AlertInfo{ Title = "Body", Text = requestBody }
                 };
-                log.LogError(ex.Message);
             }
-
-            var slackBody = new Message {
-                Attachments = items.Select(CreateSlackAttachment).ToList(),
-                // TODO: should we use Blocks instead?
-                // Blocks = new Block[] {
-                //         new HeaderBlock { Text = "My header" }
-                //     }.Concat(
-                //         items.SelectMany(CreateSlackBlocks)
-                //     ).ToList()
-            };
 
             try
             {
-                await sender.SendAlert(slackBody);
+                await sender.SendMessage(items);
             }
             catch (Exception ex)
             {
@@ -73,29 +62,6 @@ namespace AzureAlerts2Slack
             return parseException != null
                 ? new BadRequestObjectResult($"Could not read body: {parseException.Message}")
                 : new OkObjectResult("");
-        }
-
-        private static Attachment CreateSlackAttachment(AlertInfo info)
-        {
-            return new Attachment
-            {
-                 //Title = info.Title,
-                 //TitleLink = info.TitleLink,
-                 //Text = info.Text,
-                 Color = string.IsNullOrEmpty(info.Color) ? "#FF5500" : info.Color,
-                 Fallback = info.Text,
-                 Blocks = CreateSlackBlocks(info)
-            };
-        }
-
-        private static List<Block> CreateSlackBlocks(AlertInfo info)
-        {
-            // https://api.slack.com/block-kit
-            return new List<Block>{
-                new SectionBlock { Text = new Markdown{ Text = $"{MakeLink($"*{info.Title}*", info.TitleLink)}\n{info.Text}" } }
-            };
-
-            string MakeLink(string text, string? url) => string.IsNullOrEmpty(url) ? text : $"<{url}|{text}>";
         }
     }
 }

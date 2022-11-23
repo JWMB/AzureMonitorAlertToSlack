@@ -1,9 +1,8 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace AzureAlerts2Slack.SlackSenders
+namespace AzureFunctionSlackAlert.Services.SlackSenders
 {
-
     public class SlackSenderDefault : SlackSenderBase
     {
         private readonly IHttpClientFactory factory;
@@ -14,6 +13,6 @@ namespace AzureAlerts2Slack.SlackSenders
         }
 
         public override async Task<string> SendAlert(object body, string? slackWebhook = null) =>
-             await base.Send(factory.CreateClient(), body, slackWebhook);
+             await Send(factory.CreateClient(), body, slackWebhook);
     }
 }

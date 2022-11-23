@@ -1,9 +1,11 @@
+using AzureFunctionSlackAlert.Services;
+using AzureFunctionSlackAlert.Services.SlackSenders;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 
-[assembly: FunctionsStartup(typeof(AzureAlerts2Slack.Startup))]
+[assembly: FunctionsStartup(typeof(AzureFunctionSlackAlert.Startup))]
 
-namespace AzureAlerts2Slack
+namespace AzureFunctionSlackAlert
 {
     public class Startup : FunctionsStartup
     {
@@ -11,7 +13,7 @@ namespace AzureAlerts2Slack
         public override void Configure(IFunctionsHostBuilder builder)
         {
             builder.Services.AddHttpClient();
-            builder.Services.AddSingleton<ISlackSender>(sp => new SlackSenders.SlackSenderFallback());
+            builder.Services.AddSingleton<ISlackSender>(sp => new SlackSenderFallback());
             builder.Services.AddLogging();
         }
     }

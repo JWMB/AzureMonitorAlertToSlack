@@ -1,7 +1,7 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace AzureAlerts2Slack.SlackSenders
+namespace AzureFunctionSlackAlert.Services.SlackSenders
 {
     public class SlackSenderFallback : SlackSenderBase
     {
@@ -9,10 +9,9 @@ namespace AzureAlerts2Slack.SlackSenders
         public override async Task<string> SendAlert(object body, string? slackWebhook = null)
         {
             if (client == null)
-            {
                 client = new HttpClient();
-            }
-            return await base.Send(client, body, slackWebhook);
+
+            return await Send(client, body, slackWebhook);
         }
     }
 }

@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace AzureAlerts2Slack
+namespace AzureFunctionSlackAlert.Services
 {
     public interface ISlackSender
     {
