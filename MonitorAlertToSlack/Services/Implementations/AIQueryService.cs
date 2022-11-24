@@ -19,7 +19,8 @@ public class AIQueryService : IAIQueryService
     {
         // Note: set up Managed Identity so Azure Function can access Application Insights
         // In Function, Enable System assigned Identity
-        // In AI, Access control (IAM), add role Reader, assign the Function's Managed Identity 
+        // In AI, Access control (IAM), add role Reader, assign the Function's Managed Identity
+        // (Also added reader to the Workspace IAM, not sure which one is needed)
         var logClient = new LogsQueryClient(new DefaultAzureCredential());
         var result = await logClient.QueryWorkspaceAsync(workspaceId, query, new QueryTimeRange(start, end), new LogsQueryOptions());
         // result.Value.GetVisualization()
