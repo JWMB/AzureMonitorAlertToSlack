@@ -5,9 +5,9 @@ VisualStudioVersion = 17.4.33110.190
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureFunctionSlackAlert", "AzureFunctionSlackAlert\AzureFunctionSlackAlert.csproj", "{32CEAA00-24E5-47EC-BB47-F6DDD2AF6F01}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureMonitorAlertToSlack.Tests", "MonitorAlertToSlack.Tests\AzureMonitorAlertToSlack.Tests.csproj", "{06B51942-CB05-42DC-BA5B-DC75BCB8B9C9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureMonitorAlertToSlack.Tests", "AzureMonitorAlertToSlack.Tests\AzureMonitorAlertToSlack.Tests.csproj", "{06B51942-CB05-42DC-BA5B-DC75BCB8B9C9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureMonitorAlertToSlack", "MonitorAlertToSlack\AzureMonitorAlertToSlack.csproj", "{6BAFFBF1-1123-4A46-98FD-1C0014E66DD2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureMonitorAlertToSlack", "AzureMonitorAlertToSlack\AzureMonitorAlertToSlack.csproj", "{6BAFFBF1-1123-4A46-98FD-1C0014E66DD2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

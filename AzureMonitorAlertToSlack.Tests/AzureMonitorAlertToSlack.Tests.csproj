@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MonitorAlertToSlack\AzureMonitorAlertToSlack.csproj" />
+    <ProjectReference Include="..\AzureMonitorAlertToSlack\AzureMonitorAlertToSlack.csproj" />
   </ItemGroup>
 
   <ItemGroup>
