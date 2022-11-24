@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AzureMonitorCommonAlertSchemaTypes.AlertContexts.LogAlertsV2;
 using AzureMonitorCommonAlertSchemaTypes.AlertContexts;
 using AzureMonitorCommonAlertSchemaTypes;
+using Azure;
 
 namespace MonitorAlertToSlack.Services.Implementations
 {
@@ -74,7 +75,7 @@ namespace MonitorAlertToSlack.Services.Implementations
         protected virtual AlertInfo CreateFromV2ConditionPart(Alert alert, LogAlertsV2AlertContext ctx, IConditionPart? conditionPart)
         {
             var item = CreateGeneric(alert);
-            item.Title = conditionPart == null ? ctx.Condition.ToUserFriendlyString() : $"{conditionPart.ToUserFriendlyString()} ({ctx.Condition.GetUserFriendlyTimeWindowString()})";
+            item.Text = conditionPart == null ? ctx.Condition.ToUserFriendlyString() : $"{conditionPart.ToUserFriendlyString()} ({ctx.Condition.GetUserFriendlyTimeWindowString()})";
             return item;
         }
 
@@ -102,7 +103,18 @@ namespace MonitorAlertToSlack.Services.Implementations
         protected static async Task<string?> QueryAI(IAIQueryService? aiQueryService, string? query, DateTimeOffset start, DateTimeOffset end)
         {
             if (aiQueryService == null || string.IsNullOrEmpty(query)) return null;
-            return RenderDataTable(await aiQueryService.GetQueryAsDataTable(query!, start, end));
+            try
+            {
+                return RenderDataTable(await aiQueryService.GetQueryAsDataTable(query!, start, end));
+            }
+            catch (RequestFailedException rfEx)
+            {
+                return $"AIQuery error - {rfEx.ErrorCode} Query:{query} {(rfEx.Message.Contains("Status: 404") ? "" : rfEx.Message)}";
+            }
+            catch (Exception ex)
+            {
+                return $"AIQuery error - {ex.GetType().Name} Query:{query} {(ex.Message.Contains("Status: 404") ? "404" : ex.Message)}";
+            }
         }
 
         protected static string RenderDataTable(DataTable dt)
