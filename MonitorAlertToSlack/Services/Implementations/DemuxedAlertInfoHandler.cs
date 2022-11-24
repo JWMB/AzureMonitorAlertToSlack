@@ -115,7 +115,7 @@ namespace MonitorAlertToSlack.Services.Implementations
         {
             var dt = new DataTable(table.Name);
             foreach (var col in table.Columns)
-                dt.Columns.Add(new DataColumn(col.Name, typeof(string))); // TODO: parse col.Type to actual types
+                dt.Columns.Add(new DataColumn(col.Name, typeof(string))); // TODO: parse col.Type to actual types. Or should this actually be Azure.Monitor.Query.Models.LogTable..? Looks similar
 
             foreach (var row in table.Rows)
             {
