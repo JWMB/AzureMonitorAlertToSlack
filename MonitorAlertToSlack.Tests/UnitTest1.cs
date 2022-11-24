@@ -11,7 +11,7 @@ namespace MonitorAlertToSlack.Tests
         public async Task LogSearchAlerts()
         {
             var requestBody = File.ReadAllText(@"Payloads\Log alert V1 - Metric.json");
-            var items = await new AlertInfoFactory(null).Process(requestBody);
+            var items = await new AlertInfoFactory(new DemuxedAlertInfoHandler(null)).Process(requestBody);
 
             var expected = @"
 2 > 0
@@ -35,7 +35,8 @@ namespace MonitorAlertToSlack.Tests
             var dt = CreateDataTable(new[] { new { Title = "A", Value = 1 }, new { Title = "B", Value = 2 } }.Cast<object>().ToList());
             mock.Setup(o => o.GetQueryAsDataTable(It.IsAny<string>(), It.IsAny<DateTimeOffset>(), It.IsAny<DateTimeOffset>())).ReturnsAsync(() => dt);
 
-            var items = await new AlertInfoFactory(mock.Object).Process(requestBody);
+            var demuxedHandler = new DemuxedAlertInfoHandler(mock.Object);
+            var items = await new AlertInfoFactory(demuxedHandler).Process(requestBody);
 
             var expected = @"
 Heartbeat/MMC: 3 > 0

@@ -21,7 +21,8 @@ namespace AzureFunctionSlackAlert
         {
             // TODO: for some reason, DI doesn't work when deployed - causes 500 on startup with no further information
             // Creating them explicitly instead:
-            IAlertInfoFactory alertInfoFactory = new AlertInfoFactory(new AIQueryService());
+            IDemuxedAlertHandler demuxedHandler = new DemuxedAlertInfoHandler(new AIQueryService());
+            IAlertInfoFactory alertInfoFactory = new AlertInfoFactory(demuxedHandler);
             IMessageSender sender = new SlackMessageSender(new SlackSenderFallback(), new SlackMessageFactory());
 
             var requestBody = await new StreamReader(req.Body).ReadToEndAsync();
