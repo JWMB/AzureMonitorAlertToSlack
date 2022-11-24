@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using AzureMonitorCommonAlertSchemaTypes.AlertContexts;
 using AzureMonitorCommonAlertSchemaTypes;
 
-namespace MonitorAlertToSlack.Services.Implementations
+namespace AzureMonitorAlertToSlack.Services.Implementations
 {
     public class AlertInfoFactory : IAlertInfoFactory
     {

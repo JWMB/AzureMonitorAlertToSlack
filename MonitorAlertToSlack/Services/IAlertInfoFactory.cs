@@ -2,7 +2,7 @@
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MonitorAlertToSlack.Services
+namespace AzureMonitorAlertToSlack.Services
 {
     public interface IAlertInfoFactory
     {

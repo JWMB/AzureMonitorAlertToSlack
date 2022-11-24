@@ -4,7 +4,7 @@ using SlackNet.WebApi;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MonitorAlertToSlack.Services.Implementations
+namespace AzureMonitorAlertToSlack.Services.Implementations
 {
     public class SlackMessageFactory : ISlackMessageFactory
     {

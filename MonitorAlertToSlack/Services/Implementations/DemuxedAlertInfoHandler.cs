@@ -8,7 +8,7 @@ using AzureMonitorCommonAlertSchemaTypes.AlertContexts;
 using AzureMonitorCommonAlertSchemaTypes;
 using Azure;
 
-namespace MonitorAlertToSlack.Services.Implementations
+namespace AzureMonitorAlertToSlack.Services.Implementations
 {
     public class DemuxedAlertInfoHandler : IDemuxedAlertHandler
     {
@@ -49,12 +49,12 @@ namespace MonitorAlertToSlack.Services.Implementations
                 // maybe by checking criterion.TargetResourceTypes?
                 // log analytics [...]ResultsApi links be like https://api.loganalytics.io/v1/workspaces/{workspaceId}/query?query={query}&timespan={start}Z%2f{end}Z
                 // For debugging:
-                item.Text += $"\n{criterion.TargetResourceTypes} {criterion.LinkToFilteredSearchResultsApi}";
+                // item.Text += $"\n{criterion.TargetResourceTypes} {criterion.LinkToFilteredSearchResultsApi}";
 
-                //var additional = QueryAI(aiQueryService, criterion.SearchQuery, ctx.Condition.WindowStartTime, ctx.Condition.WindowEndTime)
-                //    .Result;
-                //if (!string.IsNullOrEmpty(additional))
-                //    item.Text += $"\n{additional}";
+                var additional = QueryAI(aiQueryService, criterion.SearchQuery, ctx.Condition.WindowStartTime, ctx.Condition.WindowEndTime)
+                    .Result;
+                if (!string.IsNullOrEmpty(additional))
+                    item.Text += $"\n{additional}";
 
                 item.TitleLink = (criterion.LinkToFilteredSearchResultsUi ?? criterion.LinkToSearchResultsUi)?.ToString();
 

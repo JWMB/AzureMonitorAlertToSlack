@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Azure.Core;
 using Azure.Identity;
 using AzureMonitorCommonAlertSchemaTypes.AlertContexts;
-using MonitorAlertToSlack;
+using AzureMonitorAlertToSlack;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 

@@ -1,9 +1,9 @@
-using MonitorAlertToSlack.Services.Implementations;
+using AzureMonitorAlertToSlack.Services.Implementations;
 using Moq;
 using Shouldly;
 using System.Data;
 
-namespace MonitorAlertToSlack.Tests
+namespace AzureMonitorAlertToSlack.Tests
 {
     public class UnitTest1
     {

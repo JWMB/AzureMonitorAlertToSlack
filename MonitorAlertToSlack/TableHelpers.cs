@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 
-namespace MonitorAlertToSlack
+namespace AzureMonitorAlertToSlack
 {
     public class ConvertToString
     {

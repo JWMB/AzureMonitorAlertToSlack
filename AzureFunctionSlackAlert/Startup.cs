@@ -1,7 +1,7 @@
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
-using MonitorAlertToSlack.Services;
-using MonitorAlertToSlack.Services.Implementations;
+using AzureMonitorAlertToSlack.Services;
+using AzureMonitorAlertToSlack.Services.Implementations;
 
 [assembly: FunctionsStartup(typeof(AzureFunctionSlackAlert.Startup))]
 
