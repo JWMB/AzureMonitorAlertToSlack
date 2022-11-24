@@ -44,10 +44,17 @@ namespace MonitorAlertToSlack.Services.Implementations
             {
                 var item = CreateFromV2ConditionPart(alert, ctx, criterion);
 
-                // [...]ResultsApi links be like https://api.loganalytics.io/v1/workspaces/{workspaceId}/query?query={query}&timespan={start}Z%2f{end}Z
-                var additional = QueryAI(aiQueryService, criterion.SearchQuery, ctx.Condition.WindowStartTime, ctx.Condition.WindowEndTime).Result;
-                if (!string.IsNullOrEmpty(additional))
-                    item.Text += $"\n{additional}";
+                // TODO: different APIs for querying depending on provider - microsoft.insights/components vs microsoft.operationalinsights/workspaces
+                // e.g. traces vs AppTraces
+                // maybe by checking criterion.TargetResourceTypes?
+                // log analytics [...]ResultsApi links be like https://api.loganalytics.io/v1/workspaces/{workspaceId}/query?query={query}&timespan={start}Z%2f{end}Z
+                // For debugging:
+                item.Text += $"\n{criterion.TargetResourceTypes} {criterion.LinkToFilteredSearchResultsApi}";
+
+                //var additional = QueryAI(aiQueryService, criterion.SearchQuery, ctx.Condition.WindowStartTime, ctx.Condition.WindowEndTime)
+                //    .Result;
+                //if (!string.IsNullOrEmpty(additional))
+                //    item.Text += $"\n{additional}";
 
                 item.TitleLink = (criterion.LinkToFilteredSearchResultsUi ?? criterion.LinkToSearchResultsUi)?.ToString();
 
