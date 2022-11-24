@@ -24,7 +24,7 @@ namespace MonitorAlertToSlack.Services.Implementations
                 //TitleLink = info.TitleLink,
                 //Text = info.Text,
                 Color = string.IsNullOrEmpty(info.Color) ? "#FF5500" : info.Color,
-                Fallback = info.Text,
+                Fallback = ConvertToString.Truncate(info.Text, 100),
                 Blocks = CreateSlackBlocks(info)
             };
         }
@@ -32,7 +32,9 @@ namespace MonitorAlertToSlack.Services.Implementations
         private static List<Block> CreateSlackBlocks(AlertInfo info)
         {
             // https://api.slack.com/block-kit
-            return new List<Block>{
+            return new List<Block>
+            {
+                // Note: seems like JSON in Markdown causes BadRequest/invalid_attachment?
                 new SectionBlock { Text = new Markdown{ Text = $"{MakeLink($"*{info.Title}*", info.TitleLink)}\n{info.Text}" } }
             };
 

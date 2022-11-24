@@ -28,8 +28,8 @@ namespace MonitorAlertToSlack.Services.Implementations
             // response.EnsureSuccessStatusCode();
 
             if (!response.IsSuccessStatusCode)
-                throw new Exception($"Send error: {response.StatusCode} {response.ReasonPhrase}\n{slackWebhook}\n{JsonConvert.SerializeObject(body)}\n{response.Content?.ReadAsStringAsync().Result}");
-
+                throw new Exception($"Send error: {response.StatusCode} {response.ReasonPhrase}\nResponse:{response.Content?.ReadAsStringAsync().Result}\n\n{slackWebhook}\n{JsonConvert.SerializeObject(body)}");
+            
             return response.Content.ReadAsStringAsync().Result;
         }
 
