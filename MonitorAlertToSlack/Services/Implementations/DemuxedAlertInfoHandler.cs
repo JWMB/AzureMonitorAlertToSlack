@@ -44,6 +44,7 @@ namespace MonitorAlertToSlack.Services.Implementations
             {
                 var item = CreateFromV2ConditionPart(alert, ctx, criterion);
 
+                // [...]ResultsApi links be like https://api.loganalytics.io/v1/workspaces/{workspaceId}/query?query={query}&timespan={start}Z%2f{end}Z
                 var additional = QueryAI(aiQueryService, criterion.SearchQuery, ctx.Condition.WindowStartTime, ctx.Condition.WindowEndTime).Result;
                 if (!string.IsNullOrEmpty(additional))
                     item.Text += $"\n{additional}";
@@ -56,7 +57,7 @@ namespace MonitorAlertToSlack.Services.Implementations
 
         public virtual void LogAnalyticsAlertContext(Alert alert, LogAnalyticsAlertContext ctx)
         {
-            var dataTables = ctx.SearchResults.Tables.Select(TableToDataTable);
+            var dataTables = ctx.SearchResults.Tables.Select(TableHelpers.TableToDataTable);
             var renderedTable = dataTables.Any() ? RenderDataTable(dataTables.First()) : null;
 
             var item = CreateGeneric(alert);
@@ -110,7 +111,10 @@ namespace MonitorAlertToSlack.Services.Implementations
             catch (Exception ex)
             {
                 var errorCode = ex is RequestFailedException rfEx ? rfEx.ErrorCode : null;
-                return $"AIQuery error - {errorCode} {ex.GetType().Name} Query:{query} {ex.Message}\n{ex.Source}\n{ex.StackTrace}\n--{ex.InnerException?.GetType().Name} {ex.InnerException?.Message}";
+                // Query:{query}\n{ex.Source}
+                if (ex.Message.Contains("403 (Forbidden)"))
+                    errorCode = "403";
+                return $"AIQuery error - {errorCode} {ex.GetType().Name} {ex.Message}\n{ex.StackTrace}\n--{ex.InnerException?.GetType().Name} {ex.InnerException?.Message}";
             }
         }
 
@@ -118,42 +122,6 @@ namespace MonitorAlertToSlack.Services.Implementations
         {
             var stringifyer = new ConvertToString(40);
             return $"```\n{TableHelpers.TableToMarkdown(dt, (obj, type) => stringifyer.Convert(obj, type), 10)}\n```";
-        }
-
-        public static DataTable TableToDataTable(Table table)
-        {
-            // TODO: Should this Table actually be Azure.Monitor.Query.Models.LogTable..? Looks similar
-            // Otherwise, we should create a deserializer that handles typing
-            var dt = new DataTable(table.Name);
-            foreach (var col in table.Columns)
-                dt.Columns.Add(new DataColumn(col.Name, TypenameToType(col.Type)));
-
-            foreach (var row in table.Rows)
-            {
-                var dr = dt.NewRow();
-                dr.ItemArray = row.Select((o, i) => ConvertTo(o, dt.Columns[i].DataType)).ToArray();
-                dt.Rows.Add(dr);
-            }
-            return dt;
-
-            object? ConvertTo(string input, Type type)
-            {
-                if (type == typeof(DateTimeOffset))
-                    return DateTimeOffset.TryParse(input, out var result) ? (DateTimeOffset?)result : null;
-                return Convert.ChangeType(input, type);
-            }
-
-            Type TypenameToType(string typename)
-            {
-                switch (typename.ToLower())
-                {
-                    case "datetime": return typeof(DateTimeOffset);
-                    case "string": return typeof(string);
-                    case "int": return typeof(int);
-                    case "dynamic": return typeof(object);
-                    default: return typeof(string);
-                }
-            }
         }
     }
 }

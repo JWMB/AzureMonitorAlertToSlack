@@ -20,10 +20,10 @@ public class AIQueryService : IAIQueryService
         // Note: set up Managed Identity so Azure Function can access Application Insights
         // In Function, Enable System assigned Identity
         // In AI, Access control (IAM), add role Reader, assign the Function's Managed Identity
-        // (Also added reader to the Workspace IAM, not sure which one is needed)
 
         // TODO: is LogsQueryClient broken? Getting error:
-        // Unable to cast object of type 'Azure.Monitor.Query.Models.LogsTableRow' to type 'System.IConvertible'.Couldn't store <["2022-11-24T12:49:21.6480202Z","Here is a Error"]> in TimeGenerated Column.  Expected type is DateTime.
+        // Unable to cast object of type 'Azure.Monitor.Query.Models.LogsTableRow' to type 'System.IConvertible'.
+        // Couldn't store <["2022-11-24T12:49:21.6480202Z","Here is a Error"]> in TimeGenerated Column.  Expected type is DateTime.
 
         // Wait - this is for querying the Workspace, and those queries look different! AppTraces vs traces, property capitalization etc
         var logClient = new LogsQueryClient(new DefaultAzureCredential());

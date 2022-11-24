@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AzureMonitorCommonAlertSchemaTypes.AlertContexts;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -97,6 +98,51 @@ namespace MonitorAlertToSlack
 
             string CreateString(char c, int length) =>
                 length > 0 ? string.Join("", Enumerable.Range(0, length).Select(o => c)) : string.Empty;
+        }
+
+        public static DataTable TableToDataTable(Table table)
+        {
+            // TODO: Should this Table actually be Azure.Monitor.Query.Models.LogTable..? Looks similar
+            // Otherwise, we should create a deserializer that handles typing
+            var dt = new DataTable(table.Name);
+            foreach (var col in table.Columns)
+                dt.Columns.Add(new DataColumn(col.Name, TypenameToType(col.Type)));
+
+            foreach (var row in table.Rows)
+            {
+                var dr = dt.NewRow();
+                dr.ItemArray = row.Select((o, i) => ConvertTo(o, dt.Columns[i].DataType)).ToArray();
+                dt.Rows.Add(dr);
+            }
+            return dt;
+
+            object? ConvertTo(string input, Type type)
+            {
+                if (type == typeof(DateTimeOffset))
+                    return DateTimeOffset.TryParse(input, out var result) ? (DateTimeOffset?)result : null;
+                if (type == typeof(Guid))
+                    return Guid.TryParse(input, out var result) ? (Guid?)result : null;
+                if (type == typeof(TimeSpan))
+                    return TimeSpan.TryParse(input, out var result) ? (TimeSpan?)result : null;
+                return Convert.ChangeType(input, type, System.Globalization.CultureInfo.InvariantCulture);
+            }
+
+            Type TypenameToType(string typename)
+            {
+                switch (typename.ToLower())
+                {
+                    case "bool": return typeof(bool);
+                    case "datetime": return typeof(DateTimeOffset);
+                    case "decimal": return typeof(decimal);
+                    case "dynamic": return typeof(object);
+                    case "guid": return typeof(Guid);
+                    case "int": return typeof(int);
+                    case "long": return typeof(long);
+                    case "string": return typeof(string);
+                    case "timespan": return typeof(TimeSpan);
+                    default: return typeof(string);
+                }
+            }
         }
     }
 }
