@@ -18,8 +18,8 @@ namespace MonitorAlertToSlack.Tests
 ```
 |TimeGenerated      |AggregatedValue|
 |-------------------|---------------|
-|11/23/2022 16:31:12|11             |
-|11/23/2022 16:31:12|11             |
+|2022-11-23 16:31:12|11             |
+|2022-11-23 16:31:12|11             |
 ```
 ";
             items.Single().Text.ShouldBe(TrimTable(expected));

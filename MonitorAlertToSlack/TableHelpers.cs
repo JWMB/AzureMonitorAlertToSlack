@@ -22,6 +22,7 @@ namespace MonitorAlertToSlack
                 {
                     bool val => Convert(val),
                     DateTime val => Convert(val),
+                    DateTimeOffset val => Convert(val),
                     decimal val => Convert(val),
                     Guid val => Convert(val),
                     int val => Convert(val),

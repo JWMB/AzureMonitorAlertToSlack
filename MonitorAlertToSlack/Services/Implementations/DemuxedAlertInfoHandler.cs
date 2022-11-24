@@ -123,20 +123,40 @@ namespace MonitorAlertToSlack.Services.Implementations
             return $"```\n{TableHelpers.TableToMarkdown(dt, (obj, type) => stringifyer.Convert(obj, type), 10)}\n```";
         }
 
-        private static DataTable TableToDataTable(Table table)
+        public static DataTable TableToDataTable(Table table)
         {
+            // TODO: Should this Table actually be Azure.Monitor.Query.Models.LogTable..? Looks similar
+            // Otherwise, we should create a deserializer that handles typing
             var dt = new DataTable(table.Name);
             foreach (var col in table.Columns)
-                dt.Columns.Add(new DataColumn(col.Name, typeof(string))); // TODO: parse col.Type to actual types. Or should this actually be Azure.Monitor.Query.Models.LogTable..? Looks similar
+                dt.Columns.Add(new DataColumn(col.Name, TypenameToType(col.Type)));
 
             foreach (var row in table.Rows)
             {
                 var dr = dt.NewRow();
-                dr.ItemArray = row;
+                dr.ItemArray = row.Select((o, i) => ConvertTo(o, dt.Columns[i].DataType)).ToArray();
                 dt.Rows.Add(dr);
             }
             return dt;
 
+            object? ConvertTo(string input, Type type)
+            {
+                if (type == typeof(DateTimeOffset))
+                    return DateTimeOffset.TryParse(input, out var result) ? (DateTimeOffset?)result : null;
+                return Convert.ChangeType(input, type);
+            }
+
+            Type TypenameToType(string typename)
+            {
+                switch (typename.ToLower())
+                {
+                    case "datetime": return typeof(DateTimeOffset);
+                    case "string": return typeof(string);
+                    case "int": return typeof(int);
+                    case "dynamic": return typeof(object);
+                    default: return typeof(string);
+                }
+            }
         }
     }
 }
