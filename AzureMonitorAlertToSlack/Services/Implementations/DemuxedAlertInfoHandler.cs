@@ -51,6 +51,16 @@ namespace AzureMonitorAlertToSlack.Services.Implementations
                 // For debugging:
                 // item.Text += $"\n{criterion.TargetResourceTypes} {criterion.LinkToFilteredSearchResultsApi}";
 
+                // TODO: we need a AIQueryServiceFactory that checks TargetResourceTypes
+                if (criterion.TargetResourceTypes.Contains("/workspaces")) //microsoft.operationalinsights/workspaces
+                {
+                    // This is Workspace (e.g. AppTraces)
+                }
+                else if (criterion.TargetResourceTypes.Contains("microsoft.insights")) //microsoft.insights/components'
+                {
+                    // This is application insights (e.g. traces)
+                }
+
                 var additional = QueryAI(aiQueryService, criterion.SearchQuery, ctx.Condition.WindowStartTime, ctx.Condition.WindowEndTime)
                     .Result;
                 if (!string.IsNullOrEmpty(additional))

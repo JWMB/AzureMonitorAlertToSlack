@@ -24,7 +24,7 @@ namespace AzureFunctionSlackAlert
             IAIQueryService? aIQueryService = null;
             var workspaceId = Environment.GetEnvironmentVariable("LogAnalyticsWorkspaceId");
             if (!string.IsNullOrWhiteSpace(workspaceId))
-                aIQueryService = new AIQueryServiceRaw(workspaceId);
+                aIQueryService = new AIQueryService(workspaceId);
             IDemuxedAlertHandler demuxedHandler = new DemuxedAlertInfoHandler(aIQueryService);
             IAlertInfoFactory alertInfoFactory = new AlertInfoFactory(demuxedHandler);
             IMessageSender sender = new SlackMessageSender(new SlackSenderFallback(), new SlackMessageFactory());
