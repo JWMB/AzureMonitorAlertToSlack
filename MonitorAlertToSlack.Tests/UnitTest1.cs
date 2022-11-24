@@ -39,7 +39,7 @@ namespace MonitorAlertToSlack.Tests
             var items = await new AlertInfoFactory(demuxedHandler).Process(requestBody);
 
             var expected = @"
-Heartbeat/MMC: 3 > 0
+Heartbeat/MMC: 3 > 0 (16:21:24 UTC:+00:00)
 ```
 |Title|Value|
 |-----|-----|

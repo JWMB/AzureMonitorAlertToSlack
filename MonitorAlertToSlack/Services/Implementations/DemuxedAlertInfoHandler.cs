@@ -28,6 +28,32 @@ namespace MonitorAlertToSlack.Services.Implementations
         public virtual void LogAlertsV2AlertContext(Alert alert, LogAlertsV2AlertContext ctx, DynamicThresholdCriteria[] criteria) => HandleGeneric(alert, ctx, criteria);
         public virtual void LogAlertsV2AlertContext(Alert alert, LogAlertsV2AlertContext ctx, SingleResourceMultipleMetricCriteria[] criteria) => HandleGeneric(alert, ctx, criteria);
         public virtual void LogAlertsV2AlertContext(Alert alert, LogAlertsV2AlertContext ctx, WebtestLocationAvailabilityCriteria[] criteria) => HandleGeneric(alert, ctx, criteria);
+
+        public virtual void HandleGeneric(Alert alert, LogAlertsV2AlertContext ctx, IConditionPart[]? conditions)
+        {
+            if (conditions?.Any() == true)
+            {
+                foreach (var item in conditions)
+                {
+                    Push(CreateFromV2ConditionPart(alert, ctx, item));
+                }
+            }
+            else
+            {
+                Push(CreateFromV2ConditionPart(alert, ctx, null));
+            }
+        }
+
+        protected virtual AlertInfo CreateFromV2ConditionPart(Alert alert, LogAlertsV2AlertContext ctx, IConditionPart? conditionPart)
+        {
+            return new AlertInfo
+            {
+                Title = alert.Data.Essentials.AlertRule,
+                Text = conditionPart == null ? ctx.Condition.ToUserFriendlyString() : $"{conditionPart.ToUserFriendlyString()} ({ctx.Condition.GetUserFriendlyTimeWindowString()})",
+                TitleLink = null
+            };
+        }
+
         public virtual void LogAlertsV2AlertContext(Alert alert, LogAlertsV2AlertContext ctx, LogQueryCriteria[] criteria)
         {
             foreach (var criterion in criteria)
@@ -36,12 +62,12 @@ namespace MonitorAlertToSlack.Services.Implementations
                 if (!string.IsNullOrEmpty(criterion.SearchQuery) && aiQueryService != null)
                     additional = QueryAI(aiQueryService, criterion.SearchQuery, ctx.Condition.WindowStartTime, ctx.Condition.WindowEndTime).Result;
 
-                Push(new AlertInfo
-                {
-                    Title = alert.Data.Essentials.AlertRule,
-                    Text = $"{criterion.ToUserFriendlyString()}{(additional == null ? "" : $"\n{additional}")}",
-                    TitleLink = (criterion.LinkToFilteredSearchResultsUi ?? criterion.LinkToSearchResultsUi)?.ToString()
-                });
+                var item = CreateFromV2ConditionPart(alert, ctx, criterion);
+                if (!string.IsNullOrEmpty(additional))
+                    item.Text += $"\n{additional}";
+                item.TitleLink = (criterion.LinkToFilteredSearchResultsUi ?? criterion.LinkToSearchResultsUi)?.ToString();
+
+                Push(item);
             }
         }
 
@@ -69,31 +95,6 @@ namespace MonitorAlertToSlack.Services.Implementations
                 Text = $"{ctx.ResultCount} {ctx.OperatorToken} {ctx.Threshold}{(renderedTable == null ? "" : $"\n{renderedTable}")}",
                 TitleLink = ctx.LinkToFilteredSearchResultsUi?.ToString()
             });
-        }
-
-        public virtual void HandleGeneric(Alert alert, LogAlertsV2AlertContext ctx, IConditionPart[]? conditions)
-        {
-            if (conditions?.Any() == true)
-            {
-                foreach (var item in conditions)
-                {
-                    Push(new AlertInfo
-                    {
-                        Title = alert.Data.Essentials.AlertRule,
-                        Text = item.ToUserFriendlyString(),
-                        TitleLink = null
-                    });
-                }
-            }
-            else
-            {
-                Push(new AlertInfo
-                {
-                    Title = alert.Data.Essentials.AlertRule,
-                    Text = ctx.Condition.ToUserFriendlyString(),
-                    TitleLink = null
-                });
-            }
         }
 
         public virtual void HandleGeneric(Alert alert)
