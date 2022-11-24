@@ -9,13 +9,19 @@ using Azure.Monitor.Query.Models;
 
 public class AIQueryService : IAIQueryService
 {
+    private readonly string workspaceId;
+
+    public AIQueryService(string workspaceId)
+    {
+        this.workspaceId = workspaceId;
+    }
     public async Task<DataTable> GetQueryAsDataTable(string query, DateTimeOffset start, DateTimeOffset end)
     {
         // Note: set up Managed Identity so Azure Function can access Application Insights
         // In Function, Enable System assigned Identity
         // In AI, Access control (IAM), add role Reader, assign the Function's Managed Identity 
         var logClient = new LogsQueryClient(new DefaultAzureCredential());
-        var result = await logClient.QueryWorkspaceAsync("workspace", query, new QueryTimeRange(start, end), new LogsQueryOptions());
+        var result = await logClient.QueryWorkspaceAsync(workspaceId, query, new QueryTimeRange(start, end), new LogsQueryOptions());
         // result.Value.GetVisualization()
 
         return ConvertToDataTable(result.Value.Table);
