@@ -107,13 +107,10 @@ namespace MonitorAlertToSlack.Services.Implementations
             {
                 return RenderDataTable(await aiQueryService.GetQueryAsDataTable(query!, start, end));
             }
-            catch (RequestFailedException rfEx)
-            {
-                return $"AIQuery error - {rfEx.ErrorCode} Query:{query} {(rfEx.Message.Contains("Status: 404") ? "" : rfEx.Message)}";
-            }
             catch (Exception ex)
             {
-                return $"AIQuery error - {ex.GetType().Name} Query:{query} {(ex.Message.Contains("Status: 404") ? "404" : ex.Message)}";
+                var errorCode = ex is RequestFailedException rfEx ? rfEx.ErrorCode : null;
+                return $"AIQuery error - {errorCode} {ex.GetType().Name} Query:{query} {ex.Message}\n{ex.Source}\n{ex.StackTrace}\n--{ex.InnerException?.GetType().Name} {ex.InnerException?.Message}";
             }
         }
 

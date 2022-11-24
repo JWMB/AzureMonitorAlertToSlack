@@ -9,6 +9,7 @@ using Azure.Core;
 using Azure.Identity;
 using AzureMonitorCommonAlertSchemaTypes.AlertContexts;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 public class AIQueryServiceRaw : IAIQueryService
 {
@@ -36,8 +37,15 @@ public class AIQueryServiceRaw : IAIQueryService
 
         if (token == null || token.Value.ExpiresOn < DateTimeOffset.UtcNow)
         {
-            var tokenRequestContext = new TokenRequestContext(); //new[] { scope }
-            token = await new DefaultAzureCredential().GetTokenAsync(tokenRequestContext);
+            try
+            {
+                var tokenRequestContext = new TokenRequestContext(); //new[] { scope }
+                token = await new DefaultAzureCredential().GetTokenAsync(tokenRequestContext);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Token retrieval problem", ex);
+            }
         }
 
         var body = new
@@ -60,13 +68,35 @@ public class AIQueryServiceRaw : IAIQueryService
         // https://api.loganalytics.io/v1/workspaces/c4ee0cba-337c-4e67-add9-3dd60c0cc81e/query?timespan=2022-11-24T13:00:53.000Z/2022-11-24T13:30:56.644Z
 
         var timespan = $"{UrlParamFormattedDateTime(start)}/{UrlParamFormattedDateTime(end)}"; //"P1D";
-        var result = await client.PostAsync($"https://api.loganalytics.io/v1/workspaces/{workspaceId}/query?timespan={timespan}", new StringContent(JsonConvert.SerializeObject(body)));
+        var url = $"https://api.loganalytics.io/v1/workspaces/{workspaceId}/query?timespan={timespan}";
+        var serialized = JsonConvert.SerializeObject(body, new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() });
+
+        HttpResponseMessage result;
+        try
+        {
+            result = await client.PostAsync(url, new StringContent(serialized));
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"{url} {ex.GetType().Name} {ex.Message}\n{serialized}", ex);
+        }
 
         result.EnsureSuccessStatusCode();
 
         var content = await result.Content.ReadAsStringAsync();
 
-        var typed = JsonConvert.DeserializeObject<LogAnalyticsResponse>(content);
+        if (string.IsNullOrEmpty(content))
+            throw new Exception("Result content was null");
+
+        LogAnalyticsResponse? typed;
+        try
+        {
+            typed = JsonConvert.DeserializeObject<LogAnalyticsResponse>(content);
+        }
+        catch
+        {
+            typed = JsonConvert.DeserializeObject<LogAnalyticsResponse>(content, new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() });
+        }
         return MonitorAlertToSlack.Services.Implementations.DemuxedAlertInfoHandler.TableToDataTable(typed?.Tables.FirstOrDefault() ?? new Table());
 
         string UrlParamFormattedDateTime(DateTimeOffset date) => date.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
