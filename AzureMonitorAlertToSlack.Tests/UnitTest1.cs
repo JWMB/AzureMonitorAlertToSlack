@@ -1,3 +1,4 @@
+using AzureMonitorAlertToSlack.Services;
 using AzureMonitorAlertToSlack.Services.Implementations;
 using Moq;
 using Shouldly;
@@ -31,11 +32,14 @@ namespace AzureMonitorAlertToSlack.Tests
         {
             var requestBody = File.ReadAllText(@"Payloads\Log alert V2.json");
 
-            var mock = new Mock<IAIQueryService>();
+            var mockedLogQuery = new Mock<ILogQueryService>();
             var dt = CreateDataTable(new[] { new { Title = "A", Value = 1 }, new { Title = "B", Value = 2 } }.Cast<object>().ToList());
-            mock.Setup(o => o.GetQueryAsDataTable(It.IsAny<string>(), It.IsAny<DateTimeOffset>(), It.IsAny<DateTimeOffset>())).ReturnsAsync(() => dt);
+            mockedLogQuery.Setup(o => o.GetQueryAsDataTable(It.IsAny<string>(), It.IsAny<DateTimeOffset>(), It.IsAny<DateTimeOffset>())).ReturnsAsync(() => dt);
 
-            var demuxedHandler = new DemuxedAlertInfoHandler(mock.Object);
+            var mockedFactory = new Mock<ILogQueryServiceFactory>();
+            mockedFactory.Setup(o => o.CreateLogQueryService(It.IsAny<string>())).Returns(mockedLogQuery.Object);
+
+            var demuxedHandler = new DemuxedAlertInfoHandler(mockedFactory.Object);
             var items = await new AlertInfoFactory(demuxedHandler).Process(requestBody);
 
             var expected = @"

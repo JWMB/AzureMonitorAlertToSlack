@@ -13,13 +13,13 @@ using AzureMonitorAlertToSlack;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-public class AIQueryServiceRaw : IAIQueryService
+public class LogAnalyticsQueryServiceRaw : ILogQueryService
 {
     private readonly string workspaceId;
     private static HttpClient client; // TODO: until we get DI to work...
     private static AccessToken? token; // TODO: real caching
 
-    public AIQueryServiceRaw(string workspaceId)
+    public LogAnalyticsQueryServiceRaw(string workspaceId)
     {
         this.workspaceId = workspaceId;
 
@@ -29,13 +29,7 @@ public class AIQueryServiceRaw : IAIQueryService
             ConfigureClient();
         }
     }
-    /*
-var client = HttpClientFactory.Create();
-var URL = "https://api.applicationinsights.io/v1/apps/{0}/query";
-client.DefaultRequestHeaders.Add("x-api-key", config.GetSetting("APPINSIGHTS_API_KEY"));
-client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-var requestUrl = string.Format(URL, config.GetSetting("APPINSIGHTS_APP_KEY"));
-     */
+
     public async Task<DataTable> GetQueryAsDataTable(string query, DateTimeOffset start, DateTimeOffset end)
     {
         // Note: set up Managed Identity so Azure Function can access logs:

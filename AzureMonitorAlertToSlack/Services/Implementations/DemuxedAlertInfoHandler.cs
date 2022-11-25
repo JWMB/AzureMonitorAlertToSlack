@@ -12,12 +12,12 @@ namespace AzureMonitorAlertToSlack.Services.Implementations
 {
     public class DemuxedAlertInfoHandler : IDemuxedAlertHandler
     {
-        private readonly IAIQueryService? aiQueryService;
+        private readonly ILogQueryServiceFactory? logQueryServiceFactory;
         public List<AlertInfo> Handled { get; private set; } = new List<AlertInfo>();
 
-        public DemuxedAlertInfoHandler(IAIQueryService? aiQueryService)
+        public DemuxedAlertInfoHandler(ILogQueryServiceFactory? logQueryServiceFactory)
         {
-            this.aiQueryService = aiQueryService;
+            this.logQueryServiceFactory = logQueryServiceFactory;
         }
 
         public virtual void ActivityLogAlertContext(Alert alert, ActivityLogAlertContext ctx)
@@ -44,27 +44,15 @@ namespace AzureMonitorAlertToSlack.Services.Implementations
             {
                 var item = CreateFromV2ConditionPart(alert, ctx, criterion);
 
-                // TODO: different APIs for querying depending on provider - microsoft.insights/components vs microsoft.operationalinsights/workspaces
-                // e.g. traces vs AppTraces
-                // maybe by checking criterion.TargetResourceTypes?
-                // log analytics [...]ResultsApi links be like https://api.loganalytics.io/v1/workspaces/{workspaceId}/query?query={query}&timespan={start}Z%2f{end}Z
-                // For debugging:
-                // item.Text += $"\n{criterion.TargetResourceTypes} {criterion.LinkToFilteredSearchResultsApi}";
-
-                // TODO: we need a AIQueryServiceFactory that checks TargetResourceTypes
-                if (criterion.TargetResourceTypes.Contains("/workspaces")) //microsoft.operationalinsights/workspaces
+                if (logQueryServiceFactory != null && !string.IsNullOrEmpty(criterion.SearchQuery))
                 {
-                    // This is Workspace (e.g. AppTraces)
+                    // different APIs for querying depending on provider - microsoft.insights/components vs microsoft.operationalinsights/workspaces - e.g. traces vs AppTraces
+                    var service = logQueryServiceFactory.CreateLogQueryService(criterion.TargetResourceTypes);
+                    var additional = QueryAI(service, criterion.SearchQuery, ctx.Condition.WindowStartTime, ctx.Condition.WindowEndTime)
+                        .Result;
+                    if (!string.IsNullOrEmpty(additional))
+                        item.Text += $"\n{additional}";
                 }
-                else if (criterion.TargetResourceTypes.Contains("microsoft.insights")) //microsoft.insights/components'
-                {
-                    // This is application insights (e.g. traces)
-                }
-
-                var additional = QueryAI(aiQueryService, criterion.SearchQuery, ctx.Condition.WindowStartTime, ctx.Condition.WindowEndTime)
-                    .Result;
-                if (!string.IsNullOrEmpty(additional))
-                    item.Text += $"\n{additional}";
 
                 item.TitleLink = (criterion.LinkToFilteredSearchResultsUi ?? criterion.LinkToSearchResultsUi)?.ToString();
 
@@ -118,12 +106,12 @@ namespace AzureMonitorAlertToSlack.Services.Implementations
             Handled.Add(alert);
         }
 
-        protected static async Task<string?> QueryAI(IAIQueryService? aiQueryService, string? query, DateTimeOffset start, DateTimeOffset end)
+        protected static async Task<string?> QueryAI(ILogQueryService? logQueryService, string? query, DateTimeOffset start, DateTimeOffset end)
         {
-            if (aiQueryService == null || string.IsNullOrEmpty(query)) return null;
+            if (logQueryService == null || string.IsNullOrEmpty(query)) return null;
             try
             {
-                return RenderDataTable(await aiQueryService.GetQueryAsDataTable(query!, start, end));
+                return RenderDataTable(await logQueryService.GetQueryAsDataTable(query!, start, end));
             }
             catch (Exception ex)
             {

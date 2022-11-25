@@ -7,11 +7,11 @@ using Azure.Identity;
 using Azure.Monitor.Query;
 using Azure.Monitor.Query.Models;
 
-public class AIQueryService : IAIQueryService
+public class LogAnalyticsQueryService : ILogQueryService
 {
     private readonly string workspaceId;
 
-    public AIQueryService(string workspaceId)
+    public LogAnalyticsQueryService(string workspaceId)
     {
         this.workspaceId = workspaceId;
     }

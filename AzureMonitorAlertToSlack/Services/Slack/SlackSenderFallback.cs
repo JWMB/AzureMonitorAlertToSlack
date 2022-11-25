@@ -1,7 +1,7 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace AzureMonitorAlertToSlack.Services.Implementations
+namespace AzureMonitorAlertToSlack.Services.Slack
 {
     public class SlackSenderFallback : SlackSenderBase
     {

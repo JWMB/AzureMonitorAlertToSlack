@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using AzureMonitorAlertToSlack.Services;
 using AzureMonitorAlertToSlack.Services.Implementations;
+using AzureMonitorAlertToSlack.Services.Slack;
 
 namespace AzureFunctionSlackAlert
 {
@@ -21,11 +22,8 @@ namespace AzureFunctionSlackAlert
         {
             // TODO: for some reason, DI doesn't work when deployed - causes 500 on startup with no further information
             // Creating them explicitly instead:
-            IAIQueryService? aIQueryService = null;
-            var workspaceId = Environment.GetEnvironmentVariable("LogAnalyticsWorkspaceId");
-            if (!string.IsNullOrWhiteSpace(workspaceId))
-                aIQueryService = new AIQueryService(workspaceId);
-            IDemuxedAlertHandler demuxedHandler = new DemuxedAlertInfoHandler(aIQueryService);
+            ILogQueryServiceFactory logQueryServiceFactory = new LogQueryServiceFactory();
+            IDemuxedAlertHandler demuxedHandler = new DemuxedAlertInfoHandler(logQueryServiceFactory);
             IAlertInfoFactory alertInfoFactory = new AlertInfoFactory(demuxedHandler);
             IMessageSender sender = new SlackMessageSender(new SlackSenderFallback(), new SlackMessageFactory());
 
