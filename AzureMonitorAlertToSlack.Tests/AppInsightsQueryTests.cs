@@ -48,14 +48,5 @@ traces
             var config = builder.Build();
             return new AppInsightsQueryService(config["ApplicationInsightsAppId"], config["ApplicationInsightsApiKey"]);
         }
-
-        [Fact]
-        public void Y()
-        {
-            var content = "";
-
-            var typed = AppInsightsResponse.Deserialize(content);
-            var dt = TableHelpers.TableToDataTable(typed?.Tables.FirstOrDefault() ?? new Table());
-        }
     }
 }
