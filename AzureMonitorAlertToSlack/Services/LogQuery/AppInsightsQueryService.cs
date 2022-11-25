@@ -17,10 +17,10 @@ namespace AzureMonitorAlertToSlack.Services.LogQuery
         private readonly string appId;
         private readonly string apiKey;
 
-        public AppInsightsQueryService(string? appId, string? apiKey)
+        public AppInsightsQueryService(string appId, string apiKey)
         {
-            this.appId = appId ?? Environment.GetEnvironmentVariable("ApplicationInsightsAppId");
-            this.apiKey = apiKey ?? Environment.GetEnvironmentVariable("ApplicationInsightsApiKey");
+            this.appId = appId;
+            this.apiKey = apiKey;
         }
 
         public async Task<DataTable> GetQueryAsDataTable(string query, DateTimeOffset start, DateTimeOffset end)

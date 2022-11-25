@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AzureMonitorAlertToSlack.Services.LogQuery;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -23,6 +24,7 @@ namespace AzureMonitorAlertToSlack.Services
             else if (targetResourceType.Contains("microsoft.insights")) //microsoft.insights/components
             {
                 // This is application insights (e.g. traces)
+                return new AppInsightsQueryService(Environment.GetEnvironmentVariable("ApplicationInsightsAppId"), Environment.GetEnvironmentVariable("ApplicationInsightsApiKey"));
             }
 
             return null;
