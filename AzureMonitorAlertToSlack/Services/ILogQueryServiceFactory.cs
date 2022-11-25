@@ -19,7 +19,7 @@ namespace AzureMonitorAlertToSlack.Services
                 // This is Workspace (e.g. AppTraces)
                 var workspaceId = Environment.GetEnvironmentVariable("LogAnalyticsWorkspaceId");
                 if (!string.IsNullOrWhiteSpace(workspaceId))
-                    return new LogAnalyticsQueryService(workspaceId);
+                    return new LogAnalyticsQueryServiceRaw(workspaceId); //LogAnalyticsQueryService
             }
             else if (targetResourceType.Contains("microsoft.insights")) //microsoft.insights/components
             {

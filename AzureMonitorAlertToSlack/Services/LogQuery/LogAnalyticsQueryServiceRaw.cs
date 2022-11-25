@@ -93,7 +93,9 @@ public class LogAnalyticsQueryServiceRaw : ILogQueryService
 
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Value.Token);
 
-        // https://api.loganalytics.io/v1/workspaces/c4ee0cba-337c-4e67-add9-3dd60c0cc81e/query?timespan=2022-11-24T13:00:53.000Z/2022-11-24T13:30:56.644Z
+        // https://api.loganalytics.io/v1/workspaces/{workspaceId}/query?timespan=2022-11-24T13:00:53.000Z/2022-11-24T13:30:56.644Z
+
+        // https://management.azure.com/subscriptions/{subscriptionId}/resourceGroups/{rgName}/providers/Microsoft.OperationalInsights/workspaces/{workspaceName}/api/query
 
         var timespan = $"{UrlParamFormattedDateTime(start)}/{UrlParamFormattedDateTime(end)}"; //"P1D";
         var url = $"https://api.loganalytics.io/v1/workspaces/{workspaceId}/query?timespan={timespan}";
@@ -102,9 +104,7 @@ public class LogAnalyticsQueryServiceRaw : ILogQueryService
         HttpResponseMessage result;
         try
         {
-            var content = new StringContent(serialized);
-            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-            content.Headers.ContentLength = serialized.Length;
+            var content = new StringContent(serialized, System.Text.Encoding.UTF8, "application/json");
             result = await client.PostAsync(url, content, cancellationToken: cancellationToken ?? default);
         }
         catch (Exception ex)

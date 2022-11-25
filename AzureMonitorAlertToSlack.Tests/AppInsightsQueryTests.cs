@@ -41,11 +41,30 @@ traces
                 .Message.ShouldContain("BadArgumentError");
         }
 
+        [SkippableFact]
+        public async Task LogAnalyticsQuery_ActualServiceCall_Success()
+        {
+            // Just for local testing of the client...
+            Skip.IfNot(System.Diagnostics.Debugger.IsAttached);
+
+            var config = CreateConfig();
+            var service = new LogAnalyticsQueryService(config["WorkspaceId"]);
+
+            var q = "AppTraces";
+            var result = await service.GetQueryAsDataTable(q, DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow);
+            result.Columns.OfType<DataColumn>().Count().ShouldNotBe(0);
+        }
+
+        private IConfigurationRoot CreateConfig()
+        {
+            var builder = new ConfigurationBuilder().AddUserSecrets<AppInsightsQueryTests>();
+            return builder.Build();
+        }
+
         private AppInsightsQueryService CreateRealServiceSkippable()
         {
             Skip.IfNot(System.Diagnostics.Debugger.IsAttached);
-            var builder = new ConfigurationBuilder().AddUserSecrets<AppInsightsQueryTests>();
-            var config = builder.Build();
+            var config = CreateConfig();
             return new AppInsightsQueryService(config["ApplicationInsightsAppId"], config["ApplicationInsightsApiKey"]);
         }
     }
