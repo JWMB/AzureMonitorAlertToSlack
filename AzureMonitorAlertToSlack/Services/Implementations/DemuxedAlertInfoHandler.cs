@@ -7,6 +7,7 @@ using AzureMonitorCommonAlertSchemaTypes.AlertContexts.LogAlertsV2;
 using AzureMonitorCommonAlertSchemaTypes.AlertContexts;
 using AzureMonitorCommonAlertSchemaTypes;
 using Azure;
+using System.Threading;
 
 namespace AzureMonitorAlertToSlack.Services.Implementations
 {
@@ -109,9 +110,17 @@ namespace AzureMonitorAlertToSlack.Services.Implementations
         protected static async Task<string?> QueryAI(ILogQueryService? logQueryService, string? query, DateTimeOffset start, DateTimeOffset end)
         {
             if (logQueryService == null || string.IsNullOrEmpty(query)) return null;
+
+            var cancelSrc = new CancellationTokenSource();
+            // TODO:
+            var timeoutString = Environment.GetEnvironmentVariable("LogQueryTimeout");
+            if (string.IsNullOrEmpty(timeoutString)) timeoutString = "20";
+            cancelSrc.CancelAfter(TimeSpan.FromSeconds(int.Parse(timeoutString)));
+
             try
             {
-                return RenderDataTable(await logQueryService.GetQueryAsDataTable(query!, start, end));
+                var table = await logQueryService.GetQueryAsDataTable(query!, start, end, cancelSrc.Token);
+                return RenderDataTable(table);
             }
             catch (Exception ex)
             {

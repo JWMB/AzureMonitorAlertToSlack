@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Azure.Identity;
 using Azure.Monitor.Query;
@@ -15,7 +16,7 @@ public class LogAnalyticsQueryService : ILogQueryService
     {
         this.workspaceId = workspaceId;
     }
-    public async Task<DataTable> GetQueryAsDataTable(string query, DateTimeOffset start, DateTimeOffset end)
+    public async Task<DataTable> GetQueryAsDataTable(string query, DateTimeOffset start, DateTimeOffset end, CancellationToken? cancellationToken = null)
     {
         // Note: set up Managed Identity so Azure Function can access Application Insights
         // In Function, Enable System assigned Identity
@@ -34,7 +35,7 @@ public class LogAnalyticsQueryService : ILogQueryService
             IncludeStatistics = false,
             ServerTimeout = null
         };
-        var result = await logClient.QueryWorkspaceAsync(workspaceId, query, new QueryTimeRange(start, end), options);
+        var result = await logClient.QueryWorkspaceAsync(workspaceId, query, new QueryTimeRange(start, end), options, cancellationToken: cancellationToken ?? default);
 
         return ConvertToDataTable(result.Value.Table);
     }

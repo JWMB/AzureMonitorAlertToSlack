@@ -8,6 +8,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace AzureMonitorAlertToSlack.Services.LogQuery
@@ -23,7 +24,7 @@ namespace AzureMonitorAlertToSlack.Services.LogQuery
             this.apiKey = apiKey;
         }
 
-        public async Task<DataTable> GetQueryAsDataTable(string query, DateTimeOffset start, DateTimeOffset end)
+        public async Task<DataTable> GetQueryAsDataTable(string query, DateTimeOffset start, DateTimeOffset end, CancellationToken? cancellationToken = null)
         {
             // https://learn.microsoft.com/en-us/rest/api/application-insights/query/execute?tabs=HTTP
 
@@ -42,7 +43,7 @@ namespace AzureMonitorAlertToSlack.Services.LogQuery
             };
             var content = new StringContent(JsonConvert.SerializeObject(body), Encoding.UTF8, "application/json");
 
-            var response = await client.PostAsync(url, content);
+            var response = await client.PostAsync(url, content, cancellationToken: cancellationToken ?? default);
 
             var typed = AppInsightsResponse.Deserialize(await response.Content.ReadAsStringAsync());
 

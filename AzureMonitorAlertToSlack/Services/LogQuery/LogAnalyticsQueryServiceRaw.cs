@@ -12,6 +12,7 @@ using AzureMonitorCommonAlertSchemaTypes.AlertContexts;
 using AzureMonitorAlertToSlack;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using System.Threading;
 
 public class LogAnalyticsQueryServiceRaw : ILogQueryService
 {
@@ -30,7 +31,7 @@ public class LogAnalyticsQueryServiceRaw : ILogQueryService
         }
     }
 
-    public async Task<DataTable> GetQueryAsDataTable(string query, DateTimeOffset start, DateTimeOffset end)
+    public async Task<DataTable> GetQueryAsDataTable(string query, DateTimeOffset start, DateTimeOffset end, CancellationToken? cancellationToken = null)
     {
         // Note: set up Managed Identity so Azure Function can access logs:
         // In Function, Enable System assigned Identity
@@ -53,7 +54,7 @@ public class LogAnalyticsQueryServiceRaw : ILogQueryService
             {
                 var resourceId = "https://management.azure.com";
                 var tokenRequestContext = new TokenRequestContext(new[] { $"{resourceId}/.default" });
-                token = await new DefaultAzureCredential().GetTokenAsync(tokenRequestContext);
+                token = await new DefaultAzureCredential().GetTokenAsync(tokenRequestContext, cancellationToken: cancellationToken ?? default);
                 //token = await new ManagedIdentityCredential(workspaceId).GetTokenAsync(tokenRequestContext);
 
                 // When using resourceId = <Resource ID url path from Properties page): seems GetTokenAsync never terminates
@@ -104,7 +105,7 @@ public class LogAnalyticsQueryServiceRaw : ILogQueryService
             var content = new StringContent(serialized);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
             content.Headers.ContentLength = serialized.Length;
-            result = await client.PostAsync(url, content);
+            result = await client.PostAsync(url, content, cancellationToken: cancellationToken ?? default);
         }
         catch (Exception ex)
         {
