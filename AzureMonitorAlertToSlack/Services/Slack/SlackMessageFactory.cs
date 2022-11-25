@@ -32,11 +32,24 @@ namespace AzureMonitorAlertToSlack.Services.Slack
         private static List<Block> CreateSlackBlocks(AlertInfo info)
         {
             // https://api.slack.com/block-kit
-            return new List<Block>
+            var blocks = new List<Block>
             {
                 // Note: seems like JSON in Markdown causes BadRequest/invalid_attachment?
                 new SectionBlock { Text = new Markdown{ Text = $"{MakeLink($"*{info.Title}*", info.TitleLink)}\n{info.Text}" } }
             };
+
+            foreach (var item in blocks)
+            {
+                // TODO: no common interface for e.g. those with Text..?
+                if (item is SectionBlock s)
+                {
+                    // TODO: add a second block instead of truncating?
+                    var maxLength = 3000;
+                    if (s.Text.Text.Length > maxLength)
+                        s.Text.Text = s.Text.Text.Remove(maxLength);
+                }
+            }
+            return blocks;
 
             string MakeLink(string text, string? url) => string.IsNullOrEmpty(url) ? text : $"<{url}|{text}>";
         }

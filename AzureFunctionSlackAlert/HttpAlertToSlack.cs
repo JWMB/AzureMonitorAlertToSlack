@@ -64,6 +64,9 @@ namespace AzureFunctionSlackAlert
 
                 if (ex.Message.Contains("invalid_attachments"))
                 {
+                    // TODO: how can we validate slack content?
+                    // One problem is escape chars, like <>.
+                    // Maybe we should provide a HTML document instead and render it to mrkdwn
                     try
                     {
                         await sender.SendMessage(new[] { new AlertInfo { Title = "Slack error response", Text = ex.Message } } );

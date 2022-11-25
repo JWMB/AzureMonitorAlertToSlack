@@ -52,7 +52,7 @@ namespace AzureMonitorAlertToSlack.Services.Implementations
                     var additional = QueryAI(service, criterion.SearchQuery, ctx.Condition.WindowStartTime, ctx.Condition.WindowEndTime)
                         .Result;
                     if (!string.IsNullOrEmpty(additional))
-                        item.Text += $"\n{additional}";
+                        item.Text += $"\n{SlackHelpers.Escape(additional)}";
                 }
 
                 item.TitleLink = (criterion.LinkToFilteredSearchResultsUi ?? criterion.LinkToSearchResultsUi)?.ToString();
