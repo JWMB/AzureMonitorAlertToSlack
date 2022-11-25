@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using AzureMonitorAlertToSlack.Services;
 using AzureMonitorAlertToSlack.Services.Implementations;
 using AzureMonitorAlertToSlack.Services.Slack;
+using System.Linq;
 
 namespace AzureFunctionSlackAlert
 {
@@ -60,6 +61,16 @@ namespace AzureFunctionSlackAlert
             catch (Exception ex)
             {
                 log.LogError(ex.Message);
+
+                if (ex.Message.Contains("invalid_attachments"))
+                {
+                    try
+                    {
+                        await sender.SendMessage(new[] { new AlertInfo { Title = "Slack error response", Text = ex.Message } } );
+                    }
+                    catch { }
+                }
+
                 return new BadRequestObjectResult($"Failed to send message: {ex.Message} ({ex.GetType().Name})"); // TODO: some other response type
             }
 
