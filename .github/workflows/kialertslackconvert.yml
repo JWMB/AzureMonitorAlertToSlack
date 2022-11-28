@@ -1,8 +1,7 @@
 name: Build and deploy .NET Core application to Function App kialertslackconvert
 on:
   push:
-    branches:
-    - main
+    branches: : [ "main", "release/**" ]
 env:
   AZURE_FUNCTIONAPP_NAME: kialertslackconvert
   AZURE_FUNCTIONAPP_PACKAGE_PATH: AzureFunctionSlackAlert\published
