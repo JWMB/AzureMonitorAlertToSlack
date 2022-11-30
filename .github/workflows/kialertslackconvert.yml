@@ -3,11 +3,9 @@ on:
   push:
     branches: [ "main", "release/**" ]
 env:
-  AZURE_FUNCTIONAPP_NAME: kialertslackconvert
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: AzureFunctionSlackAlert\published
   CONFIGURATION: Release
   DOTNET_CORE_VERSION: 6.0.x
-  WORKING_DIRECTORY: AzureFunctionSlackAlert
+  WORKING_DIRECTORY: AzureMonitorAlertToSlack
 jobs:
   build:
     runs-on: windows-latest
@@ -22,28 +20,5 @@ jobs:
     - name: Build
       run: dotnet build "${{ env.WORKING_DIRECTORY }}" --configuration ${{ env.CONFIGURATION }} --no-restore
     - name: Publish
-      run: dotnet publish "${{ env.WORKING_DIRECTORY }}" --configuration ${{ env.CONFIGURATION }} --no-build --output "${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}"
-    - name: Publish Artifacts
-      uses: actions/upload-artifact@v1.0.0
-      with:
-        name: functionapp
-        path: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-    - name: Publish
       if: startsWith(github.ref, 'refs/heads/release')
       run: nuget push **\*.nupkg -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGET}}
-  deploy:
-    if: startsWith(github.ref, 'refs/heads/main')
-    runs-on: windows-latest
-    needs: build
-    steps:
-    - name: Download artifact from build job
-      uses: actions/download-artifact@v2
-      with:
-        name: functionapp
-        path: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-    - name: Deploy to Azure Function App
-      uses: Azure/functions-action@v1
-      with:
-        app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
-        publish-profile: ${{ secrets.kialertslackconvert_93BD }}
-        package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
