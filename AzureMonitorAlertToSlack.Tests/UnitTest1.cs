@@ -34,7 +34,8 @@ namespace AzureMonitorAlertToSlack.Tests
 
             var mockedLogQuery = new Mock<ILogQueryService>();
             var dt = CreateDataTable(new[] { new { Title = "A", Value = 1 }, new { Title = "B", Value = 2 } }.Cast<object>().ToList());
-            mockedLogQuery.Setup(o => o.GetQueryAsDataTable(It.IsAny<string>(), It.IsAny<DateTimeOffset>(), It.IsAny<DateTimeOffset>(), null)).ReturnsAsync(() => dt);
+            mockedLogQuery.Setup(o => o.GetQueryAsDataTable(It.IsAny<string>(), It.IsAny<DateTimeOffset>(), It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(() => dt);
 
             var mockedFactory = new Mock<ILogQueryServiceFactory>();
             mockedFactory.Setup(o => o.CreateLogQueryService(It.IsAny<string>())).Returns(mockedLogQuery.Object);
