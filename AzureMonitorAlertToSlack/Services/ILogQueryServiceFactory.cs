@@ -12,10 +12,10 @@ namespace AzureMonitorAlertToSlack.Services
 
     public class LogQueryServiceFactory : ILogQueryServiceFactory
     {
-        private readonly LogAnalyticsQueryServiceRaw? logAnalytics;
-        private readonly AppInsightsQueryService? appInsights;
+        private readonly ILogAnalyticsQueryService? logAnalytics;
+        private readonly IAppInsightsQueryService? appInsights;
 
-        public LogQueryServiceFactory(LogAnalyticsQueryServiceRaw? logAnalytics, AppInsightsQueryService? appInsights)
+        public LogQueryServiceFactory(ILogAnalyticsQueryService? logAnalytics, IAppInsightsQueryService? appInsights)
         {
             this.logAnalytics = logAnalytics;
             this.appInsights = appInsights;

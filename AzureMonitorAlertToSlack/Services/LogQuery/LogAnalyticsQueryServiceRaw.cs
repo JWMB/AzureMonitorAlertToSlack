@@ -15,7 +15,7 @@ using Newtonsoft.Json.Serialization;
 using System.Threading;
 using System.Text;
 
-public class LogAnalyticsQueryServiceRaw : ILogQueryService
+public class LogAnalyticsQueryServiceRaw : IAppInsightsQueryService
 {
     private static AccessToken? token; // TODO: real caching
     private readonly LogAnalyticsClient client;

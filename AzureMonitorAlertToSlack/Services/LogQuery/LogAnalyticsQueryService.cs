@@ -8,7 +8,7 @@ using Azure.Identity;
 using Azure.Monitor.Query;
 using Azure.Monitor.Query.Models;
 
-public class LogAnalyticsQueryService : ILogQueryService
+public class LogAnalyticsQueryService : ILogAnalyticsQueryService
 {
     private readonly string workspaceId;
 

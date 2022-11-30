@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace AzureMonitorAlertToSlack.Services.LogQuery
 {
-    public class AppInsightsQueryService : ILogQueryService
+    public class AppInsightsQueryService : IAppInsightsQueryService
     {
         private readonly ApplicationInsightsClient client;
 
