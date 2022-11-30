@@ -1,9 +1,0 @@
-{
-  "profiles": {
-    "AzureFunctionSlackAlert": {
-      "commandName": "Project",
-      "commandLineArgs": "--port 7258",
-      "launchBrowser": false
-    }
-  }
-}
