@@ -47,14 +47,12 @@ namespace AzureMonitorAlertToSlack.Services.Implementations
 
                 if (logQueryServiceFactory != null && !string.IsNullOrEmpty(criterion.SearchQuery))
                 {
-                    // different APIs for querying depending on provider - microsoft.insights/components vs microsoft.operationalinsights/workspaces - e.g. traces vs AppTraces
                     var service = logQueryServiceFactory.CreateLogQueryService(criterion.TargetResourceTypes);
                     var additional = QueryAI(service, criterion.SearchQuery, ctx.Condition.WindowStartTime, ctx.Condition.WindowEndTime)
                         .Result;
                     if (!string.IsNullOrEmpty(additional))
-                        item.Text += $"\n{SlackHelpers.Escape(additional)}";
+                        item.Text += $"\n{SlackHelpers.Escape(additional!)}";
                 }
-
                 item.TitleLink = (criterion.LinkToFilteredSearchResultsUi ?? criterion.LinkToSearchResultsUi)?.ToString();
 
                 Push(item);
@@ -125,7 +123,6 @@ namespace AzureMonitorAlertToSlack.Services.Implementations
             catch (Exception ex)
             {
                 var errorCode = ex is RequestFailedException rfEx ? rfEx.ErrorCode : null;
-                // Query:{query}\n{ex.Source}
                 if (ex.Message.Contains("403 (Forbidden)"))
                     errorCode = "403";
                 return $"AIQuery error - {errorCode} {ex.GetType().Name} {ex.Message}\n{ex.StackTrace}\n--{ex.InnerException?.GetType().Name} {ex.InnerException?.Message}";

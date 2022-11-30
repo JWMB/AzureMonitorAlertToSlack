@@ -14,6 +14,7 @@ namespace AzureMonitorAlertToSlack.Services
     {
         public ILogQueryService? CreateLogQueryService(string targetResourceType)
         {
+            // different APIs for querying depending on provider - microsoft.insights/components vs microsoft.operationalinsights/workspaces - e.g. traces vs AppTraces
             if (targetResourceType.Contains("/workspaces")) //microsoft.operationalinsights/workspaces
             {
                 // This is Workspace (e.g. AppTraces)
