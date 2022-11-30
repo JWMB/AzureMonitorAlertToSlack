@@ -21,7 +21,7 @@ namespace AzureMonitorAlertToSlack.Services.Slack
         {
             slackWebhook = slackWebhook ?? Environment.GetEnvironmentVariable("SlackWebhookUrl");
             if (string.IsNullOrEmpty(slackWebhook))
-                throw new ArgumentException($"No Slack webhook speficied");
+                throw new ArgumentException($"No Slack webhook specified");
 
             var response = await client.PostAsync(slackWebhook, new StringContent(body is Message msg ? Serialize(msg) : JsonConvert.SerializeObject(body)));
             // response.EnsureSuccessStatusCode();

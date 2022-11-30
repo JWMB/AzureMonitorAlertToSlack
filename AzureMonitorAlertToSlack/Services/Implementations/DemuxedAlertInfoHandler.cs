@@ -16,7 +16,7 @@ namespace AzureMonitorAlertToSlack.Services.Implementations
         private readonly ILogQueryServiceFactory? logQueryServiceFactory;
         public List<AlertInfo> Handled { get; private set; } = new List<AlertInfo>();
 
-        public DemuxedAlertInfoHandler(ILogQueryServiceFactory? logQueryServiceFactory)
+        public DemuxedAlertInfoHandler(ILogQueryServiceFactory? logQueryServiceFactory = null)
         {
             this.logQueryServiceFactory = logQueryServiceFactory;
         }
