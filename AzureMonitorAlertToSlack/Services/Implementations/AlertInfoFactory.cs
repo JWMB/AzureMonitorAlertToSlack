@@ -21,18 +21,11 @@ namespace AzureMonitorAlertToSlack.Services.Implementations
             var alert = AzureMonitorCommonAlertSchemaTypes.Serialization.AlertJsonSerializerSettings.DeserializeOrThrow(requestBody);
             var ctx = alert?.Data.AlertContext;
             if (alert == null || ctx == null)
-                throw new Exception($"Not supported: {alert?.Data?.Essentials?.MonitoringService}");
+                throw new NotImplementedException($"Not supported: {alert?.Data?.Essentials?.MonitoringService}");
 
             var demuxer = new AlertDemuxer(demuxedHandler);
 
-            try
-            {
-                demuxer.Demux(alert);
-            }
-            catch (Exception ex)
-            {
-                // TODO: log error
-            }
+            demuxer.Demux(alert);
 
             var items = demuxedHandler.Handled;
             if (!items.Any())
@@ -47,11 +40,6 @@ namespace AzureMonitorAlertToSlack.Services.Implementations
 
             if (!items.Any())
                 throw new Exception($"No items produced");
-
-            if (Environment.GetEnvironmentVariable("DebugPayload") == "1") // TODO: change when DI problem solved
-            {
-                items.Last().Text += $"\\n{requestBody}";
-            }
 
             return Task.FromResult(items);
         }

@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -15,39 +16,19 @@ namespace AzureMonitorAlertToSlack.Services.LogQuery
 {
     public class AppInsightsQueryService : ILogQueryService
     {
-        private readonly string appId;
-        private readonly string apiKey;
+        private readonly ApplicationInsightsClient client;
 
-        public AppInsightsQueryService(string appId, string apiKey)
+        public AppInsightsQueryService(ApplicationInsightsClient client)
         {
-            this.appId = appId;
-            this.apiKey = apiKey;
+            this.client = client;
         }
 
         public async Task<DataTable> GetQueryAsDataTable(string query, DateTimeOffset start, DateTimeOffset end, CancellationToken? cancellationToken = null)
         {
             // https://learn.microsoft.com/en-us/rest/api/application-insights/query/execute?tabs=HTTP
 
-            var client = new HttpClient(); // TODO: !
-            var url = $"https://api.applicationinsights.io/v1/apps/{appId}/query";
-            client.DefaultRequestHeaders.Add("x-api-key", apiKey);
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-            var timespan = "PT1H"; // TODO: can't find any specification
-
-            var body = new
-            {
-                timespan = timespan,
-                query = query.Replace("\n", "").Replace("\r", ""),
-                //applications
-            };
-            var content = new StringContent(JsonConvert.SerializeObject(body), Encoding.UTF8, "application/json");
-
-            var response = await client.PostAsync(url, content, cancellationToken: cancellationToken ?? default);
-
-            var typed = AppInsightsResponse.Deserialize(await response.Content.ReadAsStringAsync());
-
-            return TableHelpers.TableToDataTable(typed?.Tables.FirstOrDefault() ?? new Table());
+            var result = await client.Send(query, start, end, cancellationToken);
+            return TableHelpers.TableToDataTable(result.Tables.FirstOrDefault() ?? new Table());
         }
 
         public class AppInsightsResponse
@@ -77,6 +58,40 @@ namespace AzureMonitorAlertToSlack.Services.LogQuery
                     throw new Exception(JsonConvert.SerializeObject(result.Error));
                 }
                 return result;
+            }
+        }
+
+        public class ApplicationInsightsClient
+        {
+            private readonly HttpClient client;
+
+            public ApplicationInsightsClient(HttpClient client)
+            {
+                this.client = client;
+            }
+
+            public async Task<AppInsightsResponse> Send(string query, DateTimeOffset start, DateTimeOffset end, CancellationToken? cancellationToken = null)
+            {
+                var timespan = "PT1H"; // TODO: can't find any specification
+                var body = new
+                {
+                    timespan = timespan,
+                    query = query.Replace("\n", "").Replace("\r", ""),
+                    //applications
+                };
+
+                var content = new StringContent(JsonConvert.SerializeObject(body), Encoding.UTF8, "application/json");
+                var response = await client.PostAsync("", content, cancellationToken: cancellationToken ?? default);
+
+                return AppInsightsResponse.Deserialize(await response.Content.ReadAsStringAsync());
+            }
+
+            public static void ConfigureClient(HttpClient client, string appId, string apiKey)
+            {
+                client.DefaultRequestHeaders.Add("x-api-key", apiKey);
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                var url = $"https://api.applicationinsights.io/v1/apps/{appId}/query";
+                client.BaseAddress = new Uri(url);
             }
         }
     }
