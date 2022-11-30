@@ -21,23 +21,15 @@ namespace AzureMonitorAlertToSlack.Services.Implementations
             this.logQueryServiceFactory = logQueryServiceFactory;
         }
 
-        public virtual void ActivityLogAlertContext(Alert alert, ActivityLogAlertContext ctx)
-            => HandleGeneric(alert);
-        public virtual void ResourceHealthAlertContext(Alert alert, ResourceHealthAlertContext ctx)
-            => HandleGeneric(alert);
-        public virtual void ServiceHealthAlertContext(Alert alert, ServiceHealthAlertContext ctx)
-            => HandleGeneric(alert);
-        public virtual void SmartAlertContext(Alert alert, SmartAlertContext ctx)
-            => HandleGeneric(alert);
+        public virtual void ActivityLogAlertContext(Alert alert, ActivityLogAlertContext ctx) => HandleGeneric(alert);
+        public virtual void ResourceHealthAlertContext(Alert alert, ResourceHealthAlertContext ctx) => HandleGeneric(alert);
+        public virtual void ServiceHealthAlertContext(Alert alert, ServiceHealthAlertContext ctx) => HandleGeneric(alert);
+        public virtual void SmartAlertContext(Alert alert, SmartAlertContext ctx) => HandleGeneric(alert);
 
-        public virtual void LogAlertsV2AlertContext(Alert alert, LogAlertsV2AlertContext ctx)
-            => HandleGeneric(alert);
-        public virtual void LogAlertsV2AlertContext(Alert alert, LogAlertsV2AlertContext ctx, DynamicThresholdCriteria[] criteria)
-            => HandleGenericV2(alert, ctx, criteria);
-        public virtual void LogAlertsV2AlertContext(Alert alert, LogAlertsV2AlertContext ctx, SingleResourceMultipleMetricCriteria[] criteria)
-            => HandleGenericV2(alert, ctx, criteria);
-        public virtual void LogAlertsV2AlertContext(Alert alert, LogAlertsV2AlertContext ctx, WebtestLocationAvailabilityCriteria[] criteria)
-            => HandleGenericV2(alert, ctx, criteria);
+        public virtual void LogAlertsV2AlertContext(Alert alert, LogAlertsV2AlertContext ctx) => HandleGeneric(alert);
+        public virtual void LogAlertsV2AlertContext(Alert alert, LogAlertsV2AlertContext ctx, DynamicThresholdCriteria[] criteria) => HandleGenericV2(alert, ctx, criteria);
+        public virtual void LogAlertsV2AlertContext(Alert alert, LogAlertsV2AlertContext ctx, SingleResourceMultipleMetricCriteria[] criteria) => HandleGenericV2(alert, ctx, criteria);
+        public virtual void LogAlertsV2AlertContext(Alert alert, LogAlertsV2AlertContext ctx, WebtestLocationAvailabilityCriteria[] criteria) => HandleGenericV2(alert, ctx, criteria);
 
         public virtual void LogAlertsV2AlertContext(Alert alert, LogAlertsV2AlertContext ctx, LogQueryCriteria[] criteria)
         {
@@ -48,10 +40,13 @@ namespace AzureMonitorAlertToSlack.Services.Implementations
                 if (logQueryServiceFactory != null && !string.IsNullOrEmpty(criterion.SearchQuery))
                 {
                     var service = logQueryServiceFactory.CreateLogQueryService(criterion.TargetResourceTypes);
-                    var additional = QueryAI(service, criterion.SearchQuery, ctx.Condition.WindowStartTime, ctx.Condition.WindowEndTime)
-                        .Result;
-                    if (!string.IsNullOrEmpty(additional))
-                        item.Text += $"\n{SlackHelpers.Escape(additional!)}";
+                    if (service != null)
+                    {
+                        var additional = QueryAI(service, criterion.SearchQuery, ctx.Condition.WindowStartTime, ctx.Condition.WindowEndTime)
+                            .Result;
+                        if (!string.IsNullOrEmpty(additional))
+                            item.Text += $"\n{SlackHelpers.Escape(additional!)}";
+                    }
                 }
                 item.TitleLink = (criterion.LinkToFilteredSearchResultsUi ?? criterion.LinkToSearchResultsUi)?.ToString();
 
@@ -110,7 +105,7 @@ namespace AzureMonitorAlertToSlack.Services.Implementations
             if (logQueryService == null || string.IsNullOrEmpty(query)) return null;
 
             var cancelSrc = new CancellationTokenSource();
-            // TODO:
+            // TODO: DI
             var timeoutString = Environment.GetEnvironmentVariable("LogQueryTimeout");
             if (string.IsNullOrEmpty(timeoutString)) timeoutString = "20";
             cancelSrc.CancelAfter(TimeSpan.FromSeconds(int.Parse(timeoutString)));
