@@ -65,7 +65,8 @@ traces
         {
             Skip.IfNot(System.Diagnostics.Debugger.IsAttached);
             var config = CreateConfig();
-            return new AppInsightsQueryService(config["ApplicationInsightsAppId"], config["ApplicationInsightsApiKey"]);
+            var client = new ApplicationInsightsClient(ApplicationInsightsClient.ConfigureClient(new HttpClient(), config["ApplicationInsightsAppId"], config["ApplicationInsightsApiKey"]));
+            return new AppInsightsQueryService(client);
         }
     }
 }

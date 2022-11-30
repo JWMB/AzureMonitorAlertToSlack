@@ -86,12 +86,13 @@ namespace AzureMonitorAlertToSlack.Services.LogQuery
                 return AppInsightsResponse.Deserialize(await response.Content.ReadAsStringAsync());
             }
 
-            public static void ConfigureClient(HttpClient client, string appId, string apiKey)
+            public static HttpClient ConfigureClient(HttpClient client, string appId, string apiKey)
             {
                 client.DefaultRequestHeaders.Add("x-api-key", apiKey);
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 var url = $"https://api.applicationinsights.io/v1/apps/{appId}/query";
                 client.BaseAddress = new Uri(url);
+                return client;
             }
         }
     }

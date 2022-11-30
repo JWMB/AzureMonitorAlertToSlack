@@ -6,25 +6,24 @@ using SlackNet.WebApi;
 
 namespace AzureMonitorAlertToSlack.Services.Slack
 {
-    public abstract class SlackSenderBase : ISlackSender
+    public class SlackClient : ISlackClient
     {
-        private static string Serialize(Message message)
+        private readonly HttpClient client;
+
+        public SlackClient(HttpClient client)
         {
-            return JsonConvert.SerializeObject(message, SlackNet.Default.JsonSettings().SerializerSettings);
+            this.client = client;
         }
 
-        protected async Task<string> Send(HttpClient client, object body, string? slackWebhook = null)
+        private static string Serialize(Message message) => JsonConvert.SerializeObject(message, SlackNet.Default.JsonSettings().SerializerSettings);
+
+        public async Task<string> Send(object body, string? slackWebhook = null)
         {
             slackWebhook = slackWebhook ?? Environment.GetEnvironmentVariable("SlackWebhookUrl");
             if (string.IsNullOrEmpty(slackWebhook))
                 throw new ArgumentException($"No Slack webhook speficied");
 
-            HttpResponseMessage response;
-            if (body is Message msg)
-                response = await client.PostAsync(slackWebhook, new StringContent(Serialize(msg)));
-            else
-                response = await client.PostAsync(slackWebhook, new StringContent(JsonConvert.SerializeObject(body)));
-
+            var response = await client.PostAsync(slackWebhook, new StringContent(body is Message msg ? Serialize(msg) : JsonConvert.SerializeObject(body)));
             // response.EnsureSuccessStatusCode();
 
             if (!response.IsSuccessStatusCode)
@@ -33,6 +32,9 @@ namespace AzureMonitorAlertToSlack.Services.Slack
             return response.Content.ReadAsStringAsync().Result;
         }
 
-        public abstract Task<string> SendAlert(object body, string? slackWebhook = null);
+        public static HttpClient Configure(HttpClient client)
+        {
+            return client;
+        }
     }
 }

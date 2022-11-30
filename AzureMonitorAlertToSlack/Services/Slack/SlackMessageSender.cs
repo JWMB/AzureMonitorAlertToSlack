@@ -5,10 +5,10 @@ namespace AzureMonitorAlertToSlack.Services.Slack
 {
     public class SlackMessageSender : IMessageSender
     {
-        private ISlackSender sender;
+        private ISlackClient sender;
         private ISlackMessageFactory messageFactory;
 
-        public SlackMessageSender(ISlackSender sender, ISlackMessageFactory messageFactory)
+        public SlackMessageSender(ISlackClient sender, ISlackMessageFactory messageFactory)
         {
             this.sender = sender;
             this.messageFactory = messageFactory;
@@ -17,7 +17,7 @@ namespace AzureMonitorAlertToSlack.Services.Slack
         public async Task SendMessage(IEnumerable<AlertInfo> parts)
         {
             var slackBody = messageFactory.CreateMessage(parts);
-            await sender.SendAlert(slackBody);
+            await sender.Send(slackBody);
         }
     }
 

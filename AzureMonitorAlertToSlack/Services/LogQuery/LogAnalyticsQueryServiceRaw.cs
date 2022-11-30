@@ -13,22 +13,16 @@ using AzureMonitorAlertToSlack;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System.Threading;
+using System.Text;
 
 public class LogAnalyticsQueryServiceRaw : ILogQueryService
 {
-    private readonly string workspaceId;
-    private static HttpClient client; // TODO: until we get DI to work...
     private static AccessToken? token; // TODO: real caching
+    private readonly LogAnalyticsClient client;
 
-    public LogAnalyticsQueryServiceRaw(string workspaceId)
+    public LogAnalyticsQueryServiceRaw(LogAnalyticsClient client)
     {
-        this.workspaceId = workspaceId;
-
-        if (client == null)
-        {
-            client = new HttpClient();
-            ConfigureClient();
-        }
+        this.client = client;
     }
 
     public async Task<DataTable> GetQueryAsDataTable(string query, DateTimeOffset start, DateTimeOffset end, CancellationToken? cancellationToken = null)
@@ -76,89 +70,111 @@ public class LogAnalyticsQueryServiceRaw : ILogQueryService
             }
         }
 
-        var body = new
-        {
-            Query = query,
-            Options = new { TruncationMaxSize = 67108864 },
-            MaxRows = 30001,
-            WorkspaceFilters = new { Regions = Array.Empty<string>() }
-        };
-        //var options = new LogsQueryOptions
-        //{
-        //    IncludeVisualization = false, // result.Value.GetVisualization()
-        //    AllowPartialErrors = true,
-        //    IncludeStatistics = false,
-        //    ServerTimeout = null
-        //};
+        var typed = await client.Send(token.Value, query, start, end, cancellationToken);
 
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Value.Token);
-
-        // https://api.loganalytics.io/v1/workspaces/{workspaceId}/query?timespan=2022-11-24T13:00:53.000Z/2022-11-24T13:30:56.644Z
-
-        // https://management.azure.com/subscriptions/{subscriptionId}/resourceGroups/{rgName}/providers/Microsoft.OperationalInsights/workspaces/{workspaceName}/api/query
-
-        var timespan = $"{UrlParamFormattedDateTime(start)}/{UrlParamFormattedDateTime(end)}"; //"P1D";
-        var url = $"https://api.loganalytics.io/v1/workspaces/{workspaceId}/query?timespan={timespan}";
-        var serialized = JsonConvert.SerializeObject(body, new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() });
-
-        HttpResponseMessage result;
-        try
-        {
-            var content = new StringContent(serialized, System.Text.Encoding.UTF8, "application/json");
-            result = await client.PostAsync(url, content, cancellationToken: cancellationToken ?? default);
-        }
-        catch (Exception ex)
-        {
-            throw new Exception($"{url} {ex.GetType().Name} {ex.Message}\n{serialized}", ex);
-        }
-
-        result.EnsureSuccessStatusCode();
-
-        var reponseContent = await result.Content.ReadAsStringAsync();
-
-        if (string.IsNullOrEmpty(reponseContent))
-            throw new Exception("Result content was null");
-
-        LogAnalyticsResponse? typed;
-        try
-        {
-            typed = JsonConvert.DeserializeObject<LogAnalyticsResponse>(reponseContent);
-        }
-        catch
-        {
-            typed = JsonConvert.DeserializeObject<LogAnalyticsResponse>(reponseContent, new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() });
-        }
         return TableHelpers.TableToDataTable(typed?.Tables.FirstOrDefault() ?? new Table());
-
-        string UrlParamFormattedDateTime(DateTimeOffset date) => date.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
     }
 
-    private void ConfigureClient()
+    public class LogAnalyticsClient
     {
-        client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json")); //text/plain, */*
-        /*
-Accept-Language: en-US,en;q=0.5
-Accept-Encoding: gzip, deflate, br
-Referer: https://sandbox-32-3.reactblade.portal.azure.net/
-Prefer: wait=600, ai.include-statistics=true, ai.include-render=true, include-datasources=true
-Cache-Control: no-cache
-x-ms-client-request-info: Query
-Content-Type: application/json
-x-ms-app: AppAnalytics
-x-ms-user-id: 
-Access-Control-Expose-Headers: x-ms-client-request-id
-x-ms-client-request-id: 11c37fab-10cf-47bb-8959-5f3a1813bd63
-Authorization: Bearer ...
-Content-Length: 178
-Origin: https://sandbox-32-3.reactblade.portal.azure.net
-DNT: 1
-Connection: keep-alive
-Sec-Fetch-Dest: empty
-Sec-Fetch-Mode: cors
-Sec-Fetch-Site: cross-site
-Pragma: no-cache
-TE: trailers
-*/
+        private readonly HttpClient client;
+
+        public LogAnalyticsClient(HttpClient client)
+        {
+            this.client = client;
+        }
+
+        public async Task<LogAnalyticsResponse?> Send(AccessToken token, string query, DateTimeOffset start, DateTimeOffset end, CancellationToken? cancellationToken = null)
+        {
+            var body = new
+            {
+                Query = query,
+                Options = new { TruncationMaxSize = 67108864 },
+                MaxRows = 30001,
+                WorkspaceFilters = new { Regions = Array.Empty<string>() }
+            };
+            //var options = new LogsQueryOptions
+            //{
+            //    IncludeVisualization = false, // result.Value.GetVisualization()
+            //    AllowPartialErrors = true,
+            //    IncludeStatistics = false,
+            //    ServerTimeout = null
+            //};
+
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+
+            // https://api.loganalytics.io/v1/workspaces/{workspaceId}/query?timespan=2022-11-24T13:00:53.000Z/2022-11-24T13:30:56.644Z
+
+            // https://management.azure.com/subscriptions/{subscriptionId}/resourceGroups/{rgName}/providers/Microsoft.OperationalInsights/workspaces/{workspaceName}/api/query
+
+            var timespan = $"{UrlParamFormattedDateTime(start)}/{UrlParamFormattedDateTime(end)}"; //"P1D";
+            var url = $"?timespan={timespan}"; // $"https://api.loganalytics.io/v1/workspaces/{workspaceId}/query?timespan={timespan}";
+            var serialized = JsonConvert.SerializeObject(body, new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() });
+
+            HttpResponseMessage result;
+            try
+            {
+                var content = new StringContent(serialized, Encoding.UTF8, "application/json");
+                result = await client.PostAsync(url, content, cancellationToken: cancellationToken ?? default);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"{url} {ex.GetType().Name} {ex.Message}\n{serialized}", ex);
+            }
+
+            result.EnsureSuccessStatusCode();
+
+            var reponseContent = await result.Content.ReadAsStringAsync();
+
+            if (string.IsNullOrEmpty(reponseContent))
+                throw new Exception("Result content was null");
+
+            try
+            {
+                return JsonConvert.DeserializeObject<LogAnalyticsResponse>(reponseContent);
+            }
+            catch
+            {
+                return JsonConvert.DeserializeObject<LogAnalyticsResponse>(reponseContent, new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() });
+            }
+
+            string UrlParamFormattedDateTime(DateTimeOffset date) => date.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
+        }
+
+
+        public static void ConfigureClient(HttpClient client, string workspaceId)
+        {
+            var url = $"https://api.loganalytics.io/v1/workspaces/{workspaceId}/query";
+            client.BaseAddress = new Uri(url);
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json")); //text/plain, */*
+            /*
+    Accept-Language: en-US,en;q=0.5
+    Accept-Encoding: gzip, deflate, br
+    Referer: https://sandbox-32-3.reactblade.portal.azure.net/
+    Prefer: wait=600, ai.include-statistics=true, ai.include-render=true, include-datasources=true
+    Cache-Control: no-cache
+    x-ms-client-request-info: Query
+    Content-Type: application/json
+    x-ms-app: AppAnalytics
+    x-ms-user-id: 
+    Access-Control-Expose-Headers: x-ms-client-request-id
+    x-ms-client-request-id: 11c37fab-10cf-47bb-8959-5f3a1813bd63
+    Authorization: Bearer ...
+    Content-Length: 178
+    Origin: https://sandbox-32-3.reactblade.portal.azure.net
+    DNT: 1
+    Connection: keep-alive
+    Sec-Fetch-Dest: empty
+    Sec-Fetch-Mode: cors
+    Sec-Fetch-Site: cross-site
+    Pragma: no-cache
+    TE: trailers
+    */
+            //client.DefaultRequestHeaders.Add("x-api-key", apiKey);
+            //client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            //var url = $"https://api.applicationinsights.io/v1/apps/{appId}/query";
+            //client.BaseAddress = new Uri(url);
+        }
     }
 
     public class LogAnalyticsResponse
