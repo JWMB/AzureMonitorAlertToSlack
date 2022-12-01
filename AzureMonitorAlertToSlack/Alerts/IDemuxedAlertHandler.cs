@@ -1,7 +1,7 @@
 ﻿using AzureMonitorCommonAlertSchemaTypes;
 using System.Collections.Generic;
 
-namespace AzureMonitorAlertToSlack.Services
+namespace AzureMonitorAlertToSlack.Alerts
 {
     public interface IDemuxedAlertHandler : IDemuxedAlert
     {

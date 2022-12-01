@@ -2,7 +2,6 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -12,7 +11,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace AzureMonitorAlertToSlack.Services.LogQuery
+namespace AzureMonitorAlertToSlack.LogQuery
 {
     public class AppInsightsQueryService : IAppInsightsQueryService
     {
@@ -102,5 +101,4 @@ namespace AzureMonitorAlertToSlack.Services.LogQuery
         public string ApiKey { get; set; } = string.Empty;
         public string AppId { get; set; } = string.Empty;
     }
-
 }

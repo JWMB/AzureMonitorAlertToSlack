@@ -3,12 +3,12 @@ using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json;
 using Xunit;
-using static AzureMonitorAlertToSlack.Services.LogQuery.AppInsightsQueryService;
+using static AzureMonitorAlertToSlack.LogQuery.AppInsightsQueryService;
 using SlackNet.Interaction.Experimental;
 using AzureMonitorCommonAlertSchemaTypes.AlertContexts;
 using Shouldly;
-using AzureMonitorAlertToSlack.Services.LogQuery;
 using System.Data;
+using AzureMonitorAlertToSlack.LogQuery;
 
 namespace AzureMonitorAlertToSlack.Tests
 {

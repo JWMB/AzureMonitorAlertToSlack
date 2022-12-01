@@ -1,8 +1,7 @@
-﻿using AzureMonitorAlertToSlack.Services.LogQuery;
-using System;
+﻿using System;
 using System.Threading;
 
-namespace AzureMonitorAlertToSlack.Services
+namespace AzureMonitorAlertToSlack.LogQuery
 {
     public class LogQueryServiceFactory : ILogQueryServiceFactory
     {
@@ -53,5 +52,4 @@ namespace AzureMonitorAlertToSlack.Services
         public LogAnalyticsQuerySettings? LogAnalytics { get; set; }
         public ApplicationInsightsQuerySettings? ApplicationInsights { get; set; }
     }
-
 }

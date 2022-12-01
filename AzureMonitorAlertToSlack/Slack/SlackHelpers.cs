@@ -1,4 +1,4 @@
-﻿namespace AzureMonitorAlertToSlack
+﻿namespace AzureMonitorAlertToSlack.Slack
 {
     public class SlackHelpers
     {

@@ -1,5 +1,5 @@
-﻿using AzureMonitorAlertToSlack.Services;
-using AzureMonitorAlertToSlack.Services.Slack;
+﻿using AzureMonitorAlertToSlack.LogQuery;
+using AzureMonitorAlertToSlack.Slack;
 
 namespace AzureMonitorAlertToSlack
 {

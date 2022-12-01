@@ -7,9 +7,10 @@ using AzureMonitorCommonAlertSchemaTypes.AlertContexts.LogAlertsV2;
 using AzureMonitorCommonAlertSchemaTypes.AlertContexts;
 using AzureMonitorCommonAlertSchemaTypes;
 using Azure;
-using System.Threading;
+using AzureMonitorAlertToSlack.LogQuery;
+using AzureMonitorAlertToSlack.Slack;
 
-namespace AzureMonitorAlertToSlack.Services.Implementations
+namespace AzureMonitorAlertToSlack.Alerts
 {
     public class DemuxedAlertInfoHandler : IDemuxedAlertHandler
     {

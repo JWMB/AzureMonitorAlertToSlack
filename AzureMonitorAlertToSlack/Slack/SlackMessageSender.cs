@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using AzureMonitorAlertToSlack.Alerts;
 
-namespace AzureMonitorAlertToSlack.Services.Slack
+namespace AzureMonitorAlertToSlack.Slack
 {
     public class SlackMessageSender : IMessageSender
     {

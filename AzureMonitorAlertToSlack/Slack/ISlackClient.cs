@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace AzureMonitorAlertToSlack.Services
+namespace AzureMonitorAlertToSlack.Slack
 {
     public interface ISlackClient
     {

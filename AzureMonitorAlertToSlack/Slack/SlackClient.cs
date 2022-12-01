@@ -3,9 +3,8 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SlackNet.WebApi;
-using static AzureMonitorAlertToSlack.AppSettings;
 
-namespace AzureMonitorAlertToSlack.Services.Slack
+namespace AzureMonitorAlertToSlack.Slack
 {
     public class SlackClient : ISlackClient
     {

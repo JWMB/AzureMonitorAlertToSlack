@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
-namespace AzureMonitorAlertToSlack.Services
+namespace AzureMonitorAlertToSlack.Alerts
 {
     public interface IAlertInfoFactory
     {

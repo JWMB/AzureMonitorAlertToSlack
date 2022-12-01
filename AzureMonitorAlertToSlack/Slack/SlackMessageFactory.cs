@@ -1,10 +1,11 @@
-﻿using SlackNet;
+﻿using AzureMonitorAlertToSlack.Alerts;
+using SlackNet;
 using SlackNet.Blocks;
 using SlackNet.WebApi;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace AzureMonitorAlertToSlack.Services.Slack
+namespace AzureMonitorAlertToSlack.Slack
 {
     public class SlackMessageFactory : ISlackMessageFactory
     {

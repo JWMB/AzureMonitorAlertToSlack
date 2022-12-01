@@ -1,7 +1,6 @@
-﻿using AzureMonitorAlertToSlack.Services.LogQuery;
-using System.Threading;
+﻿using System.Threading;
 
-namespace AzureMonitorAlertToSlack.Services
+namespace AzureMonitorAlertToSlack.LogQuery
 {
     public interface ILogQueryServiceFactory
     {
