@@ -12,10 +12,11 @@ public class LogAnalyticsQueryService : ILogAnalyticsQueryService
 {
     private readonly string workspaceId;
 
-    public LogAnalyticsQueryService(string workspaceId)
+    public LogAnalyticsQueryService(LogAnalyticsQuerySettings settings)
     {
-        this.workspaceId = workspaceId;
+        workspaceId = settings.WorkspaceId;
     }
+
     public async Task<DataTable> GetQueryAsDataTable(string query, DateTimeOffset start, DateTimeOffset end, CancellationToken? cancellationToken = null)
     {
         // Note: set up Managed Identity so Azure Function can access Application Insights
@@ -74,4 +75,9 @@ public class LogAnalyticsQueryService : ILogAnalyticsQueryService
         };
         return columnTypes[type];
     }
+}
+
+public class LogAnalyticsQuerySettings
+{
+    public string WorkspaceId { get; set; } = string.Empty;
 }

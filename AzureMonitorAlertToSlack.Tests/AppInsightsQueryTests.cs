@@ -48,7 +48,7 @@ traces
             Skip.IfNot(System.Diagnostics.Debugger.IsAttached);
 
             var config = CreateConfig();
-            var service = new LogAnalyticsQueryService(config["WorkspaceId"]);
+            var service = new LogAnalyticsQueryService(new LogAnalyticsQuerySettings { WorkspaceId = config["WorkspaceId"] });
 
             var q = "AppTraces";
             var result = await service.GetQueryAsDataTable(q, DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow);
@@ -65,7 +65,9 @@ traces
         {
             Skip.IfNot(System.Diagnostics.Debugger.IsAttached);
             var config = CreateConfig();
-            var client = new ApplicationInsightsClient(ApplicationInsightsClient.ConfigureClient(new HttpClient(), config["ApplicationInsightsAppId"], config["ApplicationInsightsApiKey"]));
+
+            var client = new ApplicationInsightsClient(ApplicationInsightsClient.ConfigureClient(
+                new HttpClient(), new ApplicationInsightsQuerySettings { AppId = config["ApplicationInsightsAppId"], ApiKey = config["ApplicationInsightsApiKey"] }));
             return new AppInsightsQueryService(client);
         }
     }

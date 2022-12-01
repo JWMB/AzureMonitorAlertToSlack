@@ -26,8 +26,8 @@ namespace AzureMonitorAlertToSlack.Tests
             ISlackMessageFactory messageFactory = new SlackMessageFactory();
             var msg = messageFactory.CreateMessage(new[] { item });
 
-            ISlackClient sender = new SlackClient(SlackClient.Configure(new HttpClient()));
-            await Should.NotThrowAsync(async () => await sender.Send(msg, config["SlackWebhookUrl"]));
+            ISlackClient sender = new SlackClient(SlackClient.Configure(new HttpClient()), new SlackSettings { DefaultWebhook = config["SlackWebhookUrl"] });
+            await Should.NotThrowAsync(async () => await sender.Send(msg));
         }
     }
 }
