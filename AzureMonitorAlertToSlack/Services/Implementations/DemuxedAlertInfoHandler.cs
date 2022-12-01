@@ -37,17 +37,11 @@ namespace AzureMonitorAlertToSlack.Services.Implementations
             {
                 var item = CreateFromV2ConditionPart(alert, ctx, criterion);
 
-                if (logQueryServiceFactory != null && !string.IsNullOrEmpty(criterion.SearchQuery))
-                {
-                    var service = logQueryServiceFactory.CreateLogQueryService(criterion.TargetResourceTypes);
-                    if (service != null)
-                    {
-                        var additional = QueryAI(service, criterion.SearchQuery, ctx.Condition.WindowStartTime, ctx.Condition.WindowEndTime)
-                            .Result;
-                        if (!string.IsNullOrEmpty(additional))
-                            item.Text += $"\n{SlackHelpers.Escape(additional!)}";
-                    }
-                }
+                var additional = QueryAI(criterion.TargetResourceTypes, criterion.SearchQuery, ctx.Condition.WindowStartTime, ctx.Condition.WindowEndTime)
+                    .Result;
+                if (!string.IsNullOrEmpty(additional))
+                    item.Text += $"\n{SlackHelpers.Escape(additional!)}";
+
                 item.TitleLink = (criterion.LinkToFilteredSearchResultsUi ?? criterion.LinkToSearchResultsUi)?.ToString();
 
                 Push(item);
@@ -100,19 +94,20 @@ namespace AzureMonitorAlertToSlack.Services.Implementations
             Handled.Add(alert);
         }
 
-        protected static async Task<string?> QueryAI(ILogQueryService? logQueryService, string? query, DateTimeOffset start, DateTimeOffset end)
+        protected async Task<string?> QueryAI(string targetResourceTypes, string? query, DateTimeOffset start, DateTimeOffset end)
         {
-            if (logQueryService == null || string.IsNullOrEmpty(query)) return null;
+            if (logQueryServiceFactory == null || query == null)
+                return null;
 
-            var cancelSrc = new CancellationTokenSource();
-            // TODO: DI
-            var timeoutString = Environment.GetEnvironmentVariable("LogQueryTimeout");
-            if (string.IsNullOrEmpty(timeoutString)) timeoutString = "20";
-            cancelSrc.CancelAfter(TimeSpan.FromSeconds(int.Parse(timeoutString)));
+            var logQueryService = logQueryServiceFactory.CreateLogQueryService(targetResourceTypes);
+            if (logQueryService == null || string.IsNullOrEmpty(query))
+                return null;
+
+            var cancellation = logQueryServiceFactory.GetCancellationToken();
 
             try
             {
-                var table = await logQueryService.GetQueryAsDataTable(query!, start, end, cancelSrc.Token);
+                var table = await logQueryService.GetQueryAsDataTable(query, start, end, cancellation);
                 return RenderDataTable(table);
             }
             catch (Exception ex)

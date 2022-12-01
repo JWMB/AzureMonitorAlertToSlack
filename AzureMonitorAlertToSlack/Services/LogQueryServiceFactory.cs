@@ -1,4 +1,6 @@
 ﻿using AzureMonitorAlertToSlack.Services.LogQuery;
+using System;
+using System.Threading;
 
 namespace AzureMonitorAlertToSlack.Services
 {
@@ -6,6 +8,7 @@ namespace AzureMonitorAlertToSlack.Services
     {
         private readonly ILogAnalyticsQueryService? logAnalytics;
         private readonly IAppInsightsQueryService? appInsights;
+        private readonly LogQuerySettings settings;
 
         public LogQueryServiceFactory(LogQuerySettings settings, ILogAnalyticsQueryService? logAnalytics, IAppInsightsQueryService? appInsights)
         {
@@ -14,6 +17,8 @@ namespace AzureMonitorAlertToSlack.Services
                 this.logAnalytics = logAnalytics;
                 this.appInsights = appInsights;
             }
+
+            this.settings = settings;
         }
 
         public ILogQueryService? CreateLogQueryService(string targetResourceType)
@@ -30,6 +35,13 @@ namespace AzureMonitorAlertToSlack.Services
                 return appInsights;
             }
             return null;
+        }
+
+        public CancellationToken GetCancellationToken()
+        {
+            var cancelSrc = new CancellationTokenSource();
+            cancelSrc.CancelAfter(TimeSpan.FromSeconds(settings.Timeout));
+            return cancelSrc.Token;
         }
     }
 

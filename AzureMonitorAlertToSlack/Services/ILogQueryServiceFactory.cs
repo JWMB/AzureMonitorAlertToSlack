@@ -1,12 +1,11 @@
 ﻿using AzureMonitorAlertToSlack.Services.LogQuery;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Threading;
 
 namespace AzureMonitorAlertToSlack.Services
 {
     public interface ILogQueryServiceFactory
     {
         ILogQueryService? CreateLogQueryService(string targetResourceType);
+        CancellationToken GetCancellationToken(); // TODO: not a great design to have this here...
     }
 }
