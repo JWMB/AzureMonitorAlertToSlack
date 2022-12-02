@@ -15,7 +15,7 @@ namespace AzureMonitorAlertToSlack.Slack
             this.messageFactory = messageFactory;
         }
 
-        public async Task SendMessage(IEnumerable<AlertInfo> parts)
+        public async Task SendMessage(IEnumerable<IAlertInfo> parts)
         {
             var slackBody = messageFactory.CreateMessage(parts);
             await sender.Send(slackBody);

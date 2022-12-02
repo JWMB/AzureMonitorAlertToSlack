@@ -6,6 +6,6 @@ namespace AzureMonitorAlertToSlack
 {
     public interface IMessageSender
     {
-        Task SendMessage(IEnumerable<AlertInfo> parts);
+        Task SendMessage(IEnumerable<IAlertInfo> parts);
     }
 }

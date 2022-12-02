@@ -15,7 +15,7 @@ namespace AzureMonitorAlertToSlack.Alerts
     public class DemuxedAlertInfoHandler : IDemuxedAlertHandler
     {
         private readonly ILogQueryServiceFactory? logQueryServiceFactory;
-        public List<AlertInfo> Handled { get; private set; } = new List<AlertInfo>();
+        public List<IAlertInfo> Handled { get; private set; } = new List<IAlertInfo>();
 
         public DemuxedAlertInfoHandler(ILogQueryServiceFactory? logQueryServiceFactory = null)
         {
@@ -67,14 +67,14 @@ namespace AzureMonitorAlertToSlack.Alerts
             items.ToList().ForEach(o => Push(o));
         }
 
-        protected virtual AlertInfo CreateFromV2ConditionPart(Alert alert, LogAlertsV2AlertContext ctx, IConditionPart? conditionPart)
+        protected virtual IAlertInfo CreateFromV2ConditionPart(Alert alert, LogAlertsV2AlertContext ctx, IConditionPart? conditionPart)
         {
             var item = CreateGeneric(alert);
             item.Text = conditionPart == null ? ctx.Condition.ToUserFriendlyString() : $"{conditionPart.ToUserFriendlyString()} ({ctx.Condition.GetUserFriendlyTimeWindowString()})";
             return item;
         }
 
-        protected virtual AlertInfo CreateGeneric(Alert alert)
+        protected virtual IAlertInfo CreateGeneric(Alert alert)
         {
             return new AlertInfo
             {
@@ -90,7 +90,7 @@ namespace AzureMonitorAlertToSlack.Alerts
             Push(item);
         }
 
-        protected virtual void Push(AlertInfo alert)
+        protected virtual void Push(IAlertInfo alert)
         {
             Handled.Add(alert);
         }

@@ -5,6 +5,6 @@ namespace AzureMonitorAlertToSlack.Alerts
 {
     public interface IDemuxedAlertHandler : IDemuxedAlert
     {
-        List<AlertInfo> Handled { get; }
+        List<IAlertInfo> Handled { get; }
     }
 }

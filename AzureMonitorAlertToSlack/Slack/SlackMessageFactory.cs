@@ -9,7 +9,7 @@ namespace AzureMonitorAlertToSlack.Slack
 {
     public class SlackMessageFactory : ISlackMessageFactory
     {
-        public Message CreateMessage(IEnumerable<AlertInfo> items)
+        public Message CreateMessage(IEnumerable<IAlertInfo> items)
         {
             return new Message
             {
@@ -17,7 +17,7 @@ namespace AzureMonitorAlertToSlack.Slack
             };
         }
 
-        private static Attachment CreateSlackAttachment(AlertInfo info)
+        private static Attachment CreateSlackAttachment(IAlertInfo info)
         {
             return new Attachment
             {
@@ -30,7 +30,7 @@ namespace AzureMonitorAlertToSlack.Slack
             };
         }
 
-        private static List<Block> CreateSlackBlocks(AlertInfo info)
+        private static List<Block> CreateSlackBlocks(IAlertInfo info)
         {
             // https://api.slack.com/block-kit
             var blocks = new List<Block>

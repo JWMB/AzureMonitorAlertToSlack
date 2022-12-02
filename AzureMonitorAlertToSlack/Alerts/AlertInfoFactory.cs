@@ -16,7 +16,7 @@ namespace AzureMonitorAlertToSlack.Alerts
             this.demuxedHandler = demuxedHandler;
         }
 
-        public Task<List<AlertInfo>> Process(string requestBody)
+        public Task<List<IAlertInfo>> Process(string requestBody)
         {
             var alert = AzureMonitorCommonAlertSchemaTypes.Serialization.AlertJsonSerializerSettings.DeserializeOrThrow(requestBody);
             var ctx = alert?.Data.AlertContext;

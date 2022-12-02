@@ -5,6 +5,6 @@ namespace AzureMonitorAlertToSlack.Alerts
 {
     public interface IAlertInfoFactory
     {
-        Task<List<AlertInfo>> Process(string requestBody);
+        Task<List<IAlertInfo>> Process(string requestBody);
     }
 }

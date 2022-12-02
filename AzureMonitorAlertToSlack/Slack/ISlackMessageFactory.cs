@@ -6,6 +6,6 @@ namespace AzureMonitorAlertToSlack.Slack
 {
     public interface ISlackMessageFactory
     {
-        Message CreateMessage(IEnumerable<AlertInfo> items);
+        Message CreateMessage(IEnumerable<IAlertInfo> items);
     }
 }
