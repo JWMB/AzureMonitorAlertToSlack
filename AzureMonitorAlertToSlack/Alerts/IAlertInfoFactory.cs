@@ -3,8 +3,8 @@ using System.Threading.Tasks;
 
 namespace AzureMonitorAlertToSlack.Alerts
 {
-    public interface IAlertInfoFactory
+    public interface IAlertInfoFactory<T> where T : IAlertInfo, new()
     {
-        Task<List<IAlertInfo>> Process(string requestBody);
+        Task<List<T>> Process(string requestBody);
     }
 }

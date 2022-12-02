@@ -3,8 +3,9 @@ using System.Collections.Generic;
 
 namespace AzureMonitorAlertToSlack.Alerts
 {
-    public interface IDemuxedAlertHandler : IDemuxedAlert
+    public interface IDemuxedAlertHandler<T> : IDemuxedAlert
+        where T : IAlertInfo, new()
     {
-        List<IAlertInfo> Handled { get; }
+        List<T> Handled { get; }
     }
 }

@@ -12,7 +12,7 @@ namespace AzureMonitorAlertToSlack.Tests
         public async Task LogSearchAlerts()
         {
             var requestBody = File.ReadAllText(@"Payloads\Log alert V1 - Metric.json");
-            var items = await new AlertInfoFactory(new DemuxedAlertInfoHandler(null)).Process(requestBody);
+            var items = await new AlertInfoFactory<AlertInfo>(new DemuxedAlertInfoHandler<AlertInfo>(null)).Process(requestBody);
 
             var expected = @"
 2 > 0
@@ -40,8 +40,8 @@ namespace AzureMonitorAlertToSlack.Tests
             var mockedFactory = new Mock<ILogQueryServiceFactory>();
             mockedFactory.Setup(o => o.CreateLogQueryService(It.IsAny<string>())).Returns(mockedLogQuery.Object);
 
-            var demuxedHandler = new DemuxedAlertInfoHandler(mockedFactory.Object);
-            var items = await new AlertInfoFactory(demuxedHandler).Process(requestBody);
+            var demuxedHandler = new DemuxedAlertInfoHandler<AlertInfo>(mockedFactory.Object);
+            var items = await new AlertInfoFactory<AlertInfo>(demuxedHandler).Process(requestBody);
 
             var expected = @"
 Heartbeat/MMC: 3 > 0 (16:21:24 UTC:+00:00)
