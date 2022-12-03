@@ -7,6 +7,6 @@ namespace AzureMonitorAlertToSlack.Slack
         where T : ISummarizedAlert<TPart>, new()
         where TPart : ISummarizedAlertPart, new()
     {
-        Message CreateMessage(T items);
+        Message CreateMessage(T summary);
     }
 }

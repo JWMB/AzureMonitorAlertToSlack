@@ -11,34 +11,40 @@ namespace AzureMonitorAlertToSlack.Slack
         where T : ISummarizedAlert<TPart>, new()
         where TPart : ISummarizedAlertPart, new()
     {
-        public Message CreateMessage(T items)
+        public Message CreateMessage(T summary)
         {
             return new Message
             {
-                Attachments = items.Parts.Select(CreateSlackAttachment).ToList(),
+                Attachments = summary.Parts.Select(o => CreateSlackAttachment(o, summary)).ToList(),
             };
         }
 
-        private static Attachment CreateSlackAttachment(TPart info)
+        private static Attachment CreateSlackAttachment(TPart part, T summary)
         {
             return new Attachment
             {
                 //Title = info.Title,
                 //TitleLink = info.TitleLink,
                 //Text = info.Text,
-                Color = string.IsNullOrEmpty(info.Color) ? "#FF5500" : info.Color,
-                Fallback = ConvertToString.Truncate(info.Text, 100),
-                Blocks = CreateSlackBlocks(info)
+                Color = string.IsNullOrEmpty(part.Color) ? "#FF5500" : part.Color,
+                Fallback = ConvertToString.Truncate(part.Text, 100),
+                Blocks = CreateSlackBlocks(part, summary)
             };
         }
 
-        private static List<Block> CreateSlackBlocks(ISummarizedAlertPart info)
+        private static List<Block> CreateSlackBlocks(TPart part, T summary)
         {
             // https://api.slack.com/block-kit
             var blocks = new List<Block>
             {
                 // Note: seems like JSON in Markdown causes BadRequest/invalid_attachment?
-                new SectionBlock { Text = new Markdown{ Text = $"{MakeLink($"*{info.Title}*", info.TitleLink)}\n{info.Text}" } }
+                new SectionBlock
+                {
+                    Text = new Markdown
+                    { 
+                        Text = $"{MakeLink($"*{FallbackIfEmpty(part.Title, summary.Title)}*", FallbackIfEmpty(part.TitleLink, summary.TitleLink))}\n{part.Text}"
+                    }
+                }
             };
 
             foreach (var item in blocks)
@@ -54,6 +60,7 @@ namespace AzureMonitorAlertToSlack.Slack
             }
             return blocks;
 
+            string FallbackIfEmpty(string? value, string? fallback) => (string.IsNullOrEmpty(value) ? fallback : value!) ?? string.Empty;
             string MakeLink(string text, string? url) => string.IsNullOrEmpty(url) ? text : $"<{url}|{text}>";
         }
     }
