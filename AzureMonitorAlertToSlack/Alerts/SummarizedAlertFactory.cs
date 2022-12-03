@@ -18,20 +18,6 @@ namespace AzureMonitorAlertToSlack.Alerts
             this.demuxedHandler = demuxedHandler;
         }
 
-        private T Create(ISummarizedAlertPart info)
-        {
-            var result = new T();
-            result.Parts.Add(
-                new TPart
-                {
-                    Title = info.Title,
-                    Text = info.Text,
-                    TitleLink = info.TitleLink
-                }
-            );
-            return result;
-        }
-
         public Task<T> Process(string requestBody)
         {
             var alert = AzureMonitorCommonAlertSchemaTypes.Serialization.AlertJsonSerializerSettings.DeserializeOrThrow(requestBody);
@@ -43,8 +29,8 @@ namespace AzureMonitorAlertToSlack.Alerts
 
             demuxer.Demux(alert);
 
-            var items = demuxedHandler.Handled;
-            if (!items.Parts.Any())
+            var summary = demuxedHandler.Handled;
+            if (!summary.Parts.Any())
             {
                 var fallback = new TPart
                 {
@@ -52,13 +38,13 @@ namespace AzureMonitorAlertToSlack.Alerts
                     Text = $"{ctx.ToUserFriendlyString()}",
                     TitleLink = ctx is LogAnalyticsAlertContext ctxLAx ? ctxLAx.LinkToFilteredSearchResultsUi?.ToString() : null
                 };
-                items.Parts.Add(fallback);
+                summary.Parts.Add(fallback);
             }
 
-            if (!items.Parts.Any())
-                throw new Exception($"No items produced");
+            if (!summary.Parts.Any())
+                throw new Exception($"No parts produced");
 
-            return Task.FromResult(items);
+            return Task.FromResult(summary);
         }
     }
 }
