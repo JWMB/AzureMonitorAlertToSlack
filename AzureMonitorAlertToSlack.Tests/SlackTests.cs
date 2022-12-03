@@ -16,7 +16,7 @@ namespace AzureMonitorAlertToSlack.Tests
             var builder = new ConfigurationBuilder().AddUserSecrets<AppInsightsQueryTests>();
             var config = builder.Build();
 
-            var item = new AlertInfo
+            var item = new SummarizedAlertPart
             {
                 Title = "WS Log query problems",
                 TitleLink = "https://portal.azure.com/#@aaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa/blade/Microsoft_Azure_Monitoring_Logs/LogsBlade/source/Alerts.EmailLinks/scope/{\"resources\"%3A%5B{\"resourceId\"%3A\"%2Fsubscriptions%2Faaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa%2FresourceGroups%2Faaaaaaa%2Fproviders%2Fmicrosoft.operationalinsights%2Fworkspaces%2FDefaultWorkspace-aaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa-NEU\"}%5D}/q/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa%3D%3D/prettify/1/timespan/2022-11-25T09%3a25%3a37.0000000Z%2f2022-11-25T09%3a30%3a37.0000000Z",
@@ -24,8 +24,8 @@ namespace AzureMonitorAlertToSlack.Tests
             };
 
             item.Text = SlackHelpers.Escape(item.Text);
-            ISlackMessageFactory messageFactory = new SlackMessageFactory();
-            var msg = messageFactory.CreateMessage(new[] { item });
+            var messageFactory = new SlackMessageFactory<SummarizedAlert, SummarizedAlertPart>();
+            var msg = messageFactory.CreateMessage(new SummarizedAlert { Parts = new[] { item }.ToList() });
 
             ISlackClient sender = new SlackClient(SlackClient.Configure(new HttpClient()), new SlackSettings { DefaultWebhook = config["SlackWebhookUrl"] });
             await Should.NotThrowAsync(async () => await sender.Send(msg));

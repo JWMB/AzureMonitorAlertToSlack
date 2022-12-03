@@ -7,27 +7,32 @@ using AzureMonitorCommonAlertSchemaTypes;
 
 namespace AzureMonitorAlertToSlack.Alerts
 {
-    public class AlertInfoFactory<T> : IAlertInfoFactory<T>
-        where T : IAlertInfo, new()
+    public class SummarizedAlertFactory<T, TPart> : ISummarizedAlertFactory<T, TPart>
+        where T : ISummarizedAlert<TPart>, new()
+        where TPart : ISummarizedAlertPart, new()
     {
-        private readonly IDemuxedAlertHandler<T> demuxedHandler;
+        private readonly IDemuxedAlertHandler<T, TPart> demuxedHandler;
 
-        public AlertInfoFactory(IDemuxedAlertHandler<T> demuxedHandler)
+        public SummarizedAlertFactory(IDemuxedAlertHandler<T, TPart> demuxedHandler)
         {
             this.demuxedHandler = demuxedHandler;
         }
 
-        private T Create(IAlertInfo info)
+        private T Create(ISummarizedAlertPart info)
         {
-            return new T
-            {
-                Title = info.Title,
-                Text = info.Text,
-                TitleLink = info.TitleLink
-            };
+            var result = new T();
+            result.Parts.Add(
+                new TPart
+                {
+                    Title = info.Title,
+                    Text = info.Text,
+                    TitleLink = info.TitleLink
+                }
+            );
+            return result;
         }
 
-        public Task<List<T>> Process(string requestBody)
+        public Task<T> Process(string requestBody)
         {
             var alert = AzureMonitorCommonAlertSchemaTypes.Serialization.AlertJsonSerializerSettings.DeserializeOrThrow(requestBody);
             var ctx = alert?.Data.AlertContext;
@@ -39,17 +44,18 @@ namespace AzureMonitorAlertToSlack.Alerts
             demuxer.Demux(alert);
 
             var items = demuxedHandler.Handled;
-            if (!items.Any())
+            if (!items.Parts.Any())
             {
-                items.Add(Create(new AlertInfo
+                var fallback = new TPart
                 {
                     Title = alert.Data.Essentials.AlertRule,
                     Text = $"{ctx.ToUserFriendlyString()}",
                     TitleLink = ctx is LogAnalyticsAlertContext ctxLAx ? ctxLAx.LinkToFilteredSearchResultsUi?.ToString() : null
-                }));
+                };
+                items.Parts.Add(fallback);
             }
 
-            if (!items.Any())
+            if (!items.Parts.Any())
                 throw new Exception($"No items produced");
 
             return Task.FromResult(items);

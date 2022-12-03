@@ -1,11 +1,12 @@
 ﻿using AzureMonitorAlertToSlack.Alerts;
 using SlackNet.WebApi;
-using System.Collections.Generic;
 
 namespace AzureMonitorAlertToSlack.Slack
 {
-    public interface ISlackMessageFactory
+    public interface ISlackMessageFactory<T, TPart>
+        where T : ISummarizedAlert<TPart>, new()
+        where TPart : ISummarizedAlertPart, new()
     {
-        Message CreateMessage(IEnumerable<IAlertInfo> items);
+        Message CreateMessage(T items);
     }
 }

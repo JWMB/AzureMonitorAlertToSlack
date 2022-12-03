@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,13 +11,14 @@ using AzureMonitorAlertToSlack.Slack;
 
 namespace AzureMonitorAlertToSlack.Alerts
 {
-    public class DemuxedAlertInfoHandler<T> : IDemuxedAlertHandler<T>
-        where T : IAlertInfo, new()
+    public class DemuxedAlertHandler<T, TPart> : IDemuxedAlertHandler<T, TPart>
+        where T : ISummarizedAlert<TPart>, new()
+        where TPart : ISummarizedAlertPart, new()
     {
         private readonly ILogQueryServiceFactory? logQueryServiceFactory;
-        public List<T> Handled { get; private set; } = new List<T>();
+        public T Handled { get; private set; } = new T();
 
-        public DemuxedAlertInfoHandler(ILogQueryServiceFactory? logQueryServiceFactory = null)
+        public DemuxedAlertHandler(ILogQueryServiceFactory? logQueryServiceFactory = null)
         {
             this.logQueryServiceFactory = logQueryServiceFactory;
         }
@@ -35,10 +35,11 @@ namespace AzureMonitorAlertToSlack.Alerts
 
         public virtual void LogAlertsV2AlertContext(Alert alert, LogAlertsV2AlertContext ctx, LogQueryCriteria[] criteria)
         {
+            UpdateGeneric(alert, null);
             foreach (var criterion in criteria)
             {
-                var item = CreateFromV2ConditionPart(alert, ctx, criterion);
-
+                var item = CreatePartFromV2ConditionPart(alert, ctx, criterion);
+                // $"{alert.Data.AlertContext?.ToUserFriendlyString()}"
                 var additional = QueryAI(criterion.TargetResourceTypes, criterion.SearchQuery, ctx.Condition.WindowStartTime, ctx.Condition.WindowEndTime)
                     .Result;
                 if (!string.IsNullOrEmpty(additional))
@@ -46,7 +47,7 @@ namespace AzureMonitorAlertToSlack.Alerts
 
                 item.TitleLink = (criterion.LinkToFilteredSearchResultsUi ?? criterion.LinkToSearchResultsUi)?.ToString();
 
-                Push(item);
+                Handled.Parts.Add(item);
             }
         }
 
@@ -55,45 +56,44 @@ namespace AzureMonitorAlertToSlack.Alerts
             var dataTables = ctx.SearchResults.Tables.Select(TableHelpers.TableToDataTable);
             var renderedTable = dataTables.Any() ? RenderDataTable(dataTables.First()) : null;
 
-            var item = CreateGeneric(alert);
-            item.Text = $"{ctx.ResultCount} {ctx.OperatorToken} {ctx.Threshold}{(renderedTable == null ? "" : $"\n{renderedTable}")}";
-            item.TitleLink = ctx.LinkToFilteredSearchResultsUi?.ToString();
-
-            Push(item);
+            UpdateGeneric(alert, $"{ctx.ResultCount} {ctx.OperatorToken} {ctx.Threshold}{(renderedTable == null ? "" : $"\n{renderedTable}")}");
+            Handled.TitleLink = ctx.LinkToFilteredSearchResultsUi?.ToString();
         }
 
         public virtual void HandleGenericV2(Alert alert, LogAlertsV2AlertContext ctx, IConditionPart[]? conditions)
         {
-            var items = conditions?.Select(o => CreateFromV2ConditionPart(alert, ctx, o)) ?? new[] { CreateFromV2ConditionPart(alert, ctx, null) };
-            items.ToList().ForEach(o => Push(o));
+            UpdateGeneric(alert, null);
+            var items = conditions?.Select(o => CreatePartFromV2ConditionPart(alert, ctx, o)) ?? new[] { CreatePartFromV2ConditionPart(alert, ctx, null) };
+            Handled.Parts.AddRange(items);
         }
 
-        protected virtual T CreateFromV2ConditionPart(Alert alert, LogAlertsV2AlertContext ctx, IConditionPart? conditionPart)
+        protected virtual TPart CreatePartFromV2ConditionPart(Alert alert, LogAlertsV2AlertContext ctx, IConditionPart? conditionPart)
         {
-            var item = CreateGeneric(alert);
-            item.Text = conditionPart == null ? ctx.Condition.ToUserFriendlyString() : $"{conditionPart.ToUserFriendlyString()} ({ctx.Condition.GetUserFriendlyTimeWindowString()})";
-            return item;
+            var part = new TPart();
+            part.Text = conditionPart == null ? ctx.Condition.ToUserFriendlyString() : $"{conditionPart.ToUserFriendlyString()} ({ctx.Condition.GetUserFriendlyTimeWindowString()})";
+            return part;
         }
 
-        protected virtual T CreateGeneric(Alert alert)
+        protected virtual void UpdateGeneric(Alert alert, string? createPartWithText)
         {
-            return new T
+            Handled.CustomProperties = alert.Data.CustomProperties;
+            Handled.Title = alert.Data.Essentials.AlertRule;
+
+            if (createPartWithText != null)
             {
-                Title = alert.Data.Essentials.AlertRule,
-                Text = $"{alert.Data.AlertContext?.ToUserFriendlyString()}",
-            };
+                Handled.Parts.Add(
+                    new TPart
+                    {
+                        Text = createPartWithText,
+                    }
+                );
+            }
         }
 
         protected virtual void HandleGeneric(Alert alert)
         {
-            var item = CreateGeneric(alert);
-            item.TitleLink = alert.Data.AlertContext is LogAnalyticsAlertContext ctxLAx ? ctxLAx.LinkToFilteredSearchResultsUi?.ToString() : null;
-            Push(item);
-        }
-
-        protected virtual void Push(T alert)
-        {
-            Handled.Add(alert);
+            UpdateGeneric(alert, $"{alert.Data.AlertContext?.ToUserFriendlyString()}");
+            Handled.TitleLink = alert.Data.AlertContext is LogAnalyticsAlertContext ctxLAx ? ctxLAx.LinkToFilteredSearchResultsUi?.ToString() : null;
         }
 
         protected async Task<string?> QueryAI(string targetResourceTypes, string? query, DateTimeOffset start, DateTimeOffset end)

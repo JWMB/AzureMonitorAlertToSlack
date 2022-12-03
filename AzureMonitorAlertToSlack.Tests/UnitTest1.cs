@@ -12,7 +12,7 @@ namespace AzureMonitorAlertToSlack.Tests
         public async Task LogSearchAlerts()
         {
             var requestBody = File.ReadAllText(@"Payloads\Log alert V1 - Metric.json");
-            var items = await new AlertInfoFactory<AlertInfo>(new DemuxedAlertInfoHandler<AlertInfo>(null)).Process(requestBody);
+            var summary = await new SummarizedAlertFactory<SummarizedAlert, SummarizedAlertPart>(new DemuxedAlertHandler<SummarizedAlert, SummarizedAlertPart>(null)).Process(requestBody);
 
             var expected = @"
 2 > 0
@@ -23,8 +23,8 @@ namespace AzureMonitorAlertToSlack.Tests
 |2022-11-23 16:31:12|11             |
 ```
 ";
-            items.Single().Text.ShouldBe(TrimTable(expected));
-            items.Single().TitleLink.ShouldNotBeEmpty();
+            summary.Parts.Single().Text.ShouldBe(TrimTable(expected));
+            summary.TitleLink.ShouldNotBeEmpty();
         }
 
         [Fact]
@@ -40,8 +40,8 @@ namespace AzureMonitorAlertToSlack.Tests
             var mockedFactory = new Mock<ILogQueryServiceFactory>();
             mockedFactory.Setup(o => o.CreateLogQueryService(It.IsAny<string>())).Returns(mockedLogQuery.Object);
 
-            var demuxedHandler = new DemuxedAlertInfoHandler<AlertInfo>(mockedFactory.Object);
-            var items = await new AlertInfoFactory<AlertInfo>(demuxedHandler).Process(requestBody);
+            var demuxedHandler = new DemuxedAlertHandler<SummarizedAlert, SummarizedAlertPart>(mockedFactory.Object);
+            var summary = await new SummarizedAlertFactory<SummarizedAlert, SummarizedAlertPart>(demuxedHandler).Process(requestBody);
 
             var expected = @"
 Heartbeat/MMC: 3 > 0 (16:21:24 UTC:+00:00)
@@ -52,8 +52,8 @@ Heartbeat/MMC: 3 > 0 (16:21:24 UTC:+00:00)
 |B    |2    |
 ```
 ";
-            items.Single().Text.ShouldBe(TrimTable(expected));
-            items.Single().TitleLink.ShouldNotBeEmpty();
+            summary.Parts.Single().Text.ShouldBe(TrimTable(expected));
+            summary.Parts.Single().TitleLink.ShouldNotBeEmpty();
         }
 
         private static string TrimTable(string str) => str.Trim().Replace("\r", "");

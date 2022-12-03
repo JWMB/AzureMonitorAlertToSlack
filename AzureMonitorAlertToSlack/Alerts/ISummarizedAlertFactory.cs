@@ -1,13 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using AzureMonitorAlertToSlack.Alerts;
 
-namespace AzureMonitorAlertToSlack
+namespace AzureMonitorAlertToSlack.Alerts
 {
-    public interface IMessageSender<T, TPart>
+    public interface ISummarizedAlertFactory<T, TPart>
         where T : ISummarizedAlert<TPart>, new()
         where TPart : ISummarizedAlertPart, new()
     {
-        Task SendMessage(T parts);
+        Task<T> Process(string requestBody);
     }
 }

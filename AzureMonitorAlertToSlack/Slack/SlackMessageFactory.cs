@@ -7,17 +7,19 @@ using System.Linq;
 
 namespace AzureMonitorAlertToSlack.Slack
 {
-    public class SlackMessageFactory : ISlackMessageFactory
+    public class SlackMessageFactory<T, TPart>: ISlackMessageFactory<T, TPart>
+        where T : ISummarizedAlert<TPart>, new()
+        where TPart : ISummarizedAlertPart, new()
     {
-        public Message CreateMessage(IEnumerable<IAlertInfo> items)
+        public Message CreateMessage(T items)
         {
             return new Message
             {
-                Attachments = items.Select(CreateSlackAttachment).ToList(),
+                Attachments = items.Parts.Select(CreateSlackAttachment).ToList(),
             };
         }
 
-        private static Attachment CreateSlackAttachment(IAlertInfo info)
+        private static Attachment CreateSlackAttachment(TPart info)
         {
             return new Attachment
             {
@@ -30,7 +32,7 @@ namespace AzureMonitorAlertToSlack.Slack
             };
         }
 
-        private static List<Block> CreateSlackBlocks(IAlertInfo info)
+        private static List<Block> CreateSlackBlocks(ISummarizedAlertPart info)
         {
             // https://api.slack.com/block-kit
             var blocks = new List<Block>

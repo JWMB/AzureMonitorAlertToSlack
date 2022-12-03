@@ -1,11 +1,10 @@
 ﻿using AzureMonitorCommonAlertSchemaTypes;
-using System.Collections.Generic;
-
 namespace AzureMonitorAlertToSlack.Alerts
 {
-    public interface IDemuxedAlertHandler<T> : IDemuxedAlert
-        where T : IAlertInfo, new()
+    public interface IDemuxedAlertHandler<T, TPart> : IDemuxedAlert
+        where T : ISummarizedAlert<TPart>, new()
+        where TPart : ISummarizedAlertPart, new()
     {
-        List<T> Handled { get; }
+        T Handled { get; }
     }
 }
