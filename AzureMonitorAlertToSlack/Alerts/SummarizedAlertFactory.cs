@@ -11,11 +11,11 @@ namespace AzureMonitorAlertToSlack.Alerts
         where T : ISummarizedAlert<TPart>, new()
         where TPart : ISummarizedAlertPart, new()
     {
-        private readonly IDemuxedAlertHandler<T, TPart> demuxedHandler;
+        private readonly Func<IDemuxedAlertHandler<T, TPart>> createDemuxedHandler;
 
-        public SummarizedAlertFactory(IDemuxedAlertHandler<T, TPart> demuxedHandler)
+        public SummarizedAlertFactory(Func<IDemuxedAlertHandler<T, TPart>> createDemuxedHandler)
         {
-            this.demuxedHandler = demuxedHandler;
+            this.createDemuxedHandler = createDemuxedHandler;
         }
 
         public Task<T> Process(string requestBody)
@@ -25,6 +25,7 @@ namespace AzureMonitorAlertToSlack.Alerts
             if (alert == null || ctx == null)
                 throw new NotImplementedException($"Not supported: {alert?.Data?.Essentials?.MonitoringService}");
 
+            var demuxedHandler = createDemuxedHandler();
             var demuxer = new AlertDemuxer(demuxedHandler);
 
             demuxer.Demux(alert);
