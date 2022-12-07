@@ -114,7 +114,7 @@ namespace AzureMonitorAlertToSlack.Alerts
 
         protected virtual void SetHandled(T item) => Handled = item;
 
-        protected async Task<string?> QueryAI(T handled, string targetResourceTypes, string? query, DateTimeOffset start, DateTimeOffset end)
+        protected virtual async Task<string?> QueryAI(T handled, string targetResourceTypes, string? query, DateTimeOffset start, DateTimeOffset end)
         {
             if (logQueryServiceFactory == null || query == null)
                 return null;
