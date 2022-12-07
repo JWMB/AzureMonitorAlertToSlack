@@ -1,11 +1,5 @@
-﻿using Azure;
-using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json.Serialization;
-using Newtonsoft.Json;
-using Xunit;
+﻿using Microsoft.Extensions.Configuration;
 using static AzureMonitorAlertToSlack.LogQuery.AppInsightsQueryService;
-using SlackNet.Interaction.Experimental;
-using AzureMonitorCommonAlertSchemaTypes.AlertContexts;
 using Shouldly;
 using System.Data;
 using AzureMonitorAlertToSlack.LogQuery;

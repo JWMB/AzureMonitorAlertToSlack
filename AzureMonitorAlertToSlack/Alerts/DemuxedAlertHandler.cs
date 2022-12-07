@@ -47,7 +47,7 @@ namespace AzureMonitorAlertToSlack.Alerts
             {
                 var item = CreatePartFromV2ConditionPart(alert, ctx, criterion);
                 // $"{alert.Data.AlertContext?.ToUserFriendlyString()}"
-                var additional = QueryAI(criterion.TargetResourceTypes, criterion.SearchQuery, ctx.Condition.WindowStartTime, ctx.Condition.WindowEndTime)
+                var additional = QueryAI(handled, criterion.TargetResourceTypes, criterion.SearchQuery, ctx.Condition.WindowStartTime, ctx.Condition.WindowEndTime)
                     .Result;
                 if (!string.IsNullOrEmpty(additional))
                     item.Text += $"\n{SlackHelpers.Escape(additional!)}";
@@ -114,7 +114,7 @@ namespace AzureMonitorAlertToSlack.Alerts
 
         protected virtual void SetHandled(T item) => Handled = item;
 
-        protected async Task<string?> QueryAI(string targetResourceTypes, string? query, DateTimeOffset start, DateTimeOffset end)
+        protected async Task<string?> QueryAI(T handled, string targetResourceTypes, string? query, DateTimeOffset start, DateTimeOffset end)
         {
             if (logQueryServiceFactory == null || query == null)
                 return null;
