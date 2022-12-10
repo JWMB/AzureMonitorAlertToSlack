@@ -30,7 +30,7 @@ namespace AzureMonitorAlertToSlack.Alerts
 
             demuxer.Demux(alert);
 
-            var summary = demuxedHandler.Handled;
+            var summary = demuxedHandler.Result;
             if (!summary.Parts.Any())
             {
                 var fallback = new TPart

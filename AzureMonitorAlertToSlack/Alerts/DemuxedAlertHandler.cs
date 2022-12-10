@@ -23,7 +23,7 @@ namespace AzureMonitorAlertToSlack.Alerts
         private readonly ILogQueryServiceFactory? logQueryServiceFactory;
 
         // TODO: we'd like this to be T? but difficult with .netstandard 2.0 (C# version >= 9)
-        public T Handled { get; private set; } = new T();
+        public T Result { get; private set; } = new T();
 
         public DemuxedAlertHandler(ILogQueryServiceFactory? logQueryServiceFactory = null)
         {
@@ -42,22 +42,22 @@ namespace AzureMonitorAlertToSlack.Alerts
 
         public virtual void LogAlertsV2AlertContext(Alert alert, LogAlertsV2AlertContext ctx, LogQueryCriteria[] criteria)
         {
-            var handled = CreateBasic(alert, null);
+            CreateResult(alert, null);
+
             foreach (var criterion in criteria)
             {
                 var item = CreatePartFromV2ConditionPart(alert, ctx, criterion);
-                // $"{alert.Data.AlertContext?.ToUserFriendlyString()}"
-                var additional = QueryAI(handled, criterion.TargetResourceTypes, criterion.SearchQuery, ctx.Condition.WindowStartTime, ctx.Condition.WindowEndTime)
+                var additional = QueryAI(criterion.TargetResourceTypes, criterion.SearchQuery, ctx.Condition.WindowStartTime, ctx.Condition.WindowEndTime)
                     .Result;
                 if (!string.IsNullOrEmpty(additional))
                     item.Text += $"\n{SlackHelpers.Escape(additional!)}";
 
                 item.TitleLink = (criterion.LinkToFilteredSearchResultsUi ?? criterion.LinkToSearchResultsUi)?.ToString();
 
-                handled.Parts.Add(item);
+                Result.Parts.Add(item);
             }
 
-            SetHandled(handled);
+            PostProcess();
         }
 
         public virtual void LogAnalyticsAlertContext(Alert alert, LogAnalyticsAlertContext ctx)
@@ -65,29 +65,32 @@ namespace AzureMonitorAlertToSlack.Alerts
             var dataTables = ctx.SearchResults.Tables.Select(TableHelpers.TableToDataTable);
             var renderedTable = dataTables.Any() ? RenderDataTable(dataTables.First()) : null;
 
-            var handled = CreateBasic(alert, $"{ctx.ResultCount} {ctx.OperatorToken} {ctx.Threshold}{(renderedTable == null ? "" : $"\n{renderedTable}")}");
-            handled.TitleLink = ctx.LinkToFilteredSearchResultsUi?.ToString();
+            CreateResult(alert, $"{ctx.ResultCount} {ctx.OperatorToken} {ctx.Threshold}{(renderedTable == null ? "" : $"\n{renderedTable}")}");
+            Result.TitleLink = ctx.LinkToFilteredSearchResultsUi?.ToString();
 
-            SetHandled(handled);
+            PostProcess();
         }
 
         public virtual void HandleGenericV2(Alert alert, LogAlertsV2AlertContext ctx, IConditionPart[]? conditions)
         {
-            var handled = CreateBasic(alert, null);
-            var parts = conditions?.Select(o => CreatePartFromV2ConditionPart(alert, ctx, o)) ?? new[] { CreatePartFromV2ConditionPart(alert, ctx, null) };
-            handled.Parts.AddRange(parts);
+            CreateResult(alert, null);
 
-            SetHandled(handled);
+            var parts = conditions?.Select(o => CreatePartFromV2ConditionPart(alert, ctx, o)) ?? new[] { CreatePartFromV2ConditionPart(alert, ctx, null) };
+            Result.Parts.AddRange(parts);
+
+            PostProcess();
         }
+
+        protected virtual TPart CreatePart() => new TPart();
 
         protected virtual TPart CreatePartFromV2ConditionPart(Alert alert, LogAlertsV2AlertContext ctx, IConditionPart? conditionPart)
         {
-            var part = new TPart();
+            var part = CreatePart();
             part.Text = conditionPart == null ? ctx.Condition.ToUserFriendlyString() : $"{conditionPart.ToUserFriendlyString()} ({ctx.Condition.GetUserFriendlyTimeWindowString()})";
             return part;
         }
 
-        protected virtual T CreateBasic(Alert alert, string? createPartWithText)
+        protected virtual void CreateResult(Alert alert, string? createPartWithText)
         {
             var result = new T();
             result.CustomProperties = alert.Data.CustomProperties;
@@ -95,26 +98,23 @@ namespace AzureMonitorAlertToSlack.Alerts
 
             if (createPartWithText != null)
             {
-                result.Parts.Add(
-                    new TPart
-                    {
-                        Text = createPartWithText,
-                    }
-                );
+                var part = CreatePart();
+                part.Text = createPartWithText;
+                result.Parts.Add(part);
             }
-            return result;
+            Result = result;
         }
 
         protected virtual void HandleGeneric(Alert alert)
         {
-            var handled = CreateBasic(alert, $"{alert.Data.AlertContext?.ToUserFriendlyString()}");
-            handled.TitleLink = alert.Data.AlertContext is LogAnalyticsAlertContext ctxLAx ? ctxLAx.LinkToFilteredSearchResultsUi?.ToString() : null;
-            SetHandled(handled);
+            CreateResult(alert, $"{alert.Data.AlertContext?.ToUserFriendlyString()}");
+            Result.TitleLink = alert.Data.AlertContext is LogAnalyticsAlertContext ctxLAx ? ctxLAx.LinkToFilteredSearchResultsUi?.ToString() : null;
+            PostProcess();
         }
 
-        protected virtual void SetHandled(T item) => Handled = item;
+        protected virtual void PostProcess() { }
 
-        protected virtual async Task<string?> QueryAI(T handled, string targetResourceTypes, string? query, DateTimeOffset start, DateTimeOffset end)
+        protected virtual async Task<string?> QueryAI(string targetResourceTypes, string? query, DateTimeOffset start, DateTimeOffset end)
         {
             if (logQueryServiceFactory == null || query == null)
                 return null;
@@ -128,7 +128,7 @@ namespace AzureMonitorAlertToSlack.Alerts
             try
             {
                 var table = await logQueryService.GetQueryAsDataTable(query, start, end, cancellation);
-                return RenderDataTable(table);
+                return table == null ? null : RenderDataTable(table);
             }
             catch (Exception ex)
             {
