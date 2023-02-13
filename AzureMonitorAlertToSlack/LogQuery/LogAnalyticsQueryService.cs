@@ -56,7 +56,6 @@ namespace AzureMonitorAlertToSlack.LogQuery
 
                 dtRow.ItemArray = row.Select(o => o).ToArray();
             }
-
             return dt;
         }
 
@@ -65,7 +64,7 @@ namespace AzureMonitorAlertToSlack.LogQuery
             var columnTypes = new Dictionary<LogsColumnType, Type>
         {
             { LogsColumnType.Bool, typeof(bool) },
-            { LogsColumnType.Datetime, typeof(DateTime) }, // TODO: DateTimeOffset?
+            { LogsColumnType.Datetime, typeof(DateTimeOffset) },
             { LogsColumnType.Decimal, typeof(decimal) },
             { LogsColumnType.Dynamic, typeof(object) },
             { LogsColumnType.Guid, typeof(Guid) },
