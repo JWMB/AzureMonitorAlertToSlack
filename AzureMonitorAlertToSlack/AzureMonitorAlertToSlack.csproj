@@ -10,6 +10,7 @@
 	  <PackageReadmeFile>README.md</PackageReadmeFile>
 	  <PackageProjectUrl>https://github.com/JWMB/AzureMonitorAlertToSlack</PackageProjectUrl>
 	  <Title>AzureMonitorAlertToSlack</Title>
+	  <Authors>JWMB</Authors>
   </PropertyGroup>
 
   <ItemGroup>
