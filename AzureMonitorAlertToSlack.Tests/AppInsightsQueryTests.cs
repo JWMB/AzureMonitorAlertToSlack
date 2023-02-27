@@ -42,9 +42,18 @@ traces
             Skip.IfNot(System.Diagnostics.Debugger.IsAttached);
 
             var config = CreateConfig();
+
+            // TODO: Auth problems from VS
+            // https://stackoverflow.com/questions/62398069/defaultazurecredential-in-visual-studio-dev-fails-to-find-a-suitable-user
+            // https://github.com/Azure/azure-sdk-for-net/issues/10816
+            var envVarName = "AZURE_USERNAME";
+            var azureUsername = config[envVarName];
+            if (envVarName != null)
+                Environment.SetEnvironmentVariable(envVarName, azureUsername);
+
             var service = new LogAnalyticsQueryService(new LogAnalyticsQuerySettings { WorkspaceId = config["WorkspaceId"] });
 
-            var q = "AppTraces";
+            var q = "AppTraces | project TimeGenerated, Message";
             var result = await service.GetQueryAsDataTable(q, DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow);
             result.Columns.OfType<DataColumn>().Count().ShouldNotBe(0);
         }
