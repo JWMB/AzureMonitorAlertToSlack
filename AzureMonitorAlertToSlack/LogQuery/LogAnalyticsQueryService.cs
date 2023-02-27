@@ -47,14 +47,26 @@ namespace AzureMonitorAlertToSlack.LogQuery
         {
             var dt = new DataTable(table.Name);
 
-            dt.Columns.AddRange(table.Columns.Select(o => new DataColumn(o.Name, ConvertType(o.Type))).ToArray());
-
-            foreach (var row in table.Rows)
+            try
             {
-                var dtRow = dt.NewRow();
-                dt.Rows.Add(row);
+                dt.Columns.AddRange(table.Columns.Select(o => new DataColumn(o.Name, ConvertType(o.Type))).ToArray());
 
-                dtRow.ItemArray = row.Select(o => o).ToArray();
+                foreach (var row in table.Rows)
+                {
+                    var dtRow = dt.NewRow();
+                    dt.Rows.Add(row);
+
+                    dtRow.ItemArray = row.Select(o => o).ToArray();
+                }
+            }
+            catch (Exception ex)
+            {
+                // ArgumentException Unable to cast object of type 'Azure.Monitor.Query.Models.LogsTableRow' to type 'System.DateTimeOffset'
+                // Couldn't store <["2023-02-27T17:22:26.8360448Z","We currently allow max 50 trainings per account. You have 0 left.","TrainingApi.ErrorHandling.HttpException at TrainingApi.Controllers.TrainingsController+<PostGroup>d__14.MoveNext"]>
+                // in TimeGenerated Column. Expected type is DateTimeOffset
+                var cols = string.Join(",", table.Columns.Select(o => $"{o.Name}/{o.Type}"));
+                var row1 = table.Rows.FirstOrDefault().Select(o => $"'{o}'");
+                throw new Exception($"Problem converting to datatable: {cols} {(row1 == null ? "NULL" : string.Join(",", row1))}", ex);
             }
             return dt;
         }

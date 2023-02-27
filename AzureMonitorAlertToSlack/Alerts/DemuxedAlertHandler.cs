@@ -20,7 +20,7 @@ namespace AzureMonitorAlertToSlack.Alerts
         where T : ISummarizedAlert<TPart>, new()
         where TPart : ISummarizedAlertPart, new()
     {
-        private readonly ILogQueryServiceFactory? logQueryServiceFactory;
+        protected readonly ILogQueryServiceFactory? logQueryServiceFactory;
 
         // TODO: we'd like this to be T? but difficult with .netstandard 2.0 (C# version >= 9)
         public T Result { get; private set; } = new T();
