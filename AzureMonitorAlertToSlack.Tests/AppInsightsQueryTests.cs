@@ -3,7 +3,6 @@ using static AzureMonitorAlertToSlack.LogQuery.AppInsightsQueryService;
 using Shouldly;
 using System.Data;
 using AzureMonitorAlertToSlack.LogQuery;
-using SlackNet;
 
 namespace AzureMonitorAlertToSlack.Tests
 {
