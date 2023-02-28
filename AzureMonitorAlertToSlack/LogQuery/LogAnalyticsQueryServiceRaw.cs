@@ -19,10 +19,12 @@ namespace AzureMonitorAlertToSlack.LogQuery
     {
         private static AccessToken? token; // TODO: real caching
         private readonly LogAnalyticsClient client;
+        private readonly LogAnalyticsQuerySettings settings;
 
-        public LogAnalyticsQueryServiceRaw(LogAnalyticsClient client)
+        public LogAnalyticsQueryServiceRaw(LogAnalyticsClient client, LogAnalyticsQuerySettings settings)
         {
             this.client = client;
+            this.settings = settings;
         }
 
         public async Task<DataTable> GetQueryAsDataTable(string query, DateTimeOffset start, DateTimeOffset end, CancellationToken? cancellationToken = null)
@@ -50,7 +52,8 @@ namespace AzureMonitorAlertToSlack.LogQuery
                     var tokenRequestContext = new TokenRequestContext(new[] { $"{resourceId}/.default" });
                     token = await new DefaultAzureCredential().GetTokenAsync(tokenRequestContext, cancellationToken: cancellationToken ?? default);
                     //token = await new ManagedIdentityCredential(workspaceId).GetTokenAsync(tokenRequestContext);
-
+                    //new DefaultAzureCredential(new DefaultAzureCredentialOptions {  })
+                        //new VisualStudioCredential(new VisualStudioCredentialOptions {   })
                     // When using resourceId = <Resource ID url path from Properties page): seems GetTokenAsync never terminates
                     //    explore resource ids here: https://resources.azure.com/
                     // When using resourceId = "https://management.azure.com{Resource ID url path}": Azure.Identity.CredentialDiagnosticScope.FailWrapAndThrow 
@@ -70,7 +73,7 @@ namespace AzureMonitorAlertToSlack.LogQuery
                 }
             }
 
-            var typed = await client.Send(token.Value, query, start, end, cancellationToken);
+            var typed = await client.Send(token.Value, settings.WorkspaceId, query, start, end, cancellationToken);
 
             return TableHelpers.TableToDataTable(typed?.Tables.FirstOrDefault() ?? new Table());
         }
@@ -84,7 +87,7 @@ namespace AzureMonitorAlertToSlack.LogQuery
                 this.client = client;
             }
 
-            public async Task<LogAnalyticsResponse?> Send(AccessToken token, string query, DateTimeOffset start, DateTimeOffset end, CancellationToken? cancellationToken = null)
+            public async Task<LogAnalyticsResponse?> Send(AccessToken token, string workspaceId, string query, DateTimeOffset start, DateTimeOffset end, CancellationToken? cancellationToken = null)
             {
                 var body = new
                 {
@@ -108,7 +111,8 @@ namespace AzureMonitorAlertToSlack.LogQuery
                 // https://management.azure.com/subscriptions/{subscriptionId}/resourceGroups/{rgName}/providers/Microsoft.OperationalInsights/workspaces/{workspaceName}/api/query
 
                 var timespan = $"{UrlParamFormattedDateTime(start)}/{UrlParamFormattedDateTime(end)}"; //"P1D";
-                var url = $"?timespan={timespan}"; // $"https://api.loganalytics.io/v1/workspaces/{workspaceId}/query?timespan={timespan}";
+                //var url = $"?timespan={timespan}";
+                var url = $"https://api.loganalytics.io/v1/workspaces/{workspaceId}/query?timespan={timespan}";
                 var serialized = JsonConvert.SerializeObject(body, new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() });
 
                 HttpResponseMessage result;

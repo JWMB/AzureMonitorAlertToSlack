@@ -65,7 +65,7 @@ namespace AzureMonitorAlertToSlack.LogQuery
                 // Couldn't store <["2023-02-27T17:22:26.8360448Z","We currently allow max 50 trainings per account. You have 0 left.","TrainingApi.ErrorHandling.HttpException at TrainingApi.Controllers.TrainingsController+<PostGroup>d__14.MoveNext"]>
                 // in TimeGenerated Column. Expected type is DateTimeOffset
                 var cols = string.Join(",", table.Columns.Select(o => $"{o.Name}/{o.Type}"));
-                var row1 = table.Rows.FirstOrDefault().Select(o => $"'{o}'");
+                var row1 = table.Rows.FirstOrDefault().Select(o => $"'{o}'/{o.GetType().Name}");
                 throw new Exception($"Problem converting to datatable: {cols} {(row1 == null ? "NULL" : string.Join(",", row1))}", ex);
             }
             return dt;
