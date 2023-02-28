@@ -50,14 +50,31 @@ namespace AzureMonitorAlertToSlack.LogQuery
             try
             {
                 dt.Columns.AddRange(table.Columns.Select(o => new DataColumn(o.Name, ConvertType(o.Type))).ToArray());
+                var errors = new List<string>();
 
                 foreach (var row in table.Rows)
                 {
                     var dtRow = dt.NewRow();
                     dt.Rows.Add(row);
 
-                    dtRow.ItemArray = row.Select(o => o).ToArray();
+                    var values = row.Select((o, i) => {
+                        if (o == null)
+                            return null;
+                        try
+                        {
+                            return Convert.ChangeType(o, dt.Columns[i].DataType);
+                        }
+                        catch (Exception x)
+                        {
+                            errors.Add($"{o}/{dt.Columns[i].DataType}: {x.Message}");
+                            return null;
+                        }
+                    });
+                    dt.Rows.Add(values);
+                    //dtRow.ItemArray = row.Select(o => o).ToArray();
                 }
+                if (errors.Any())
+                    throw new Exception($"Convert errors: {string.Join(",", errors)}");
             }
             catch (Exception ex)
             {
