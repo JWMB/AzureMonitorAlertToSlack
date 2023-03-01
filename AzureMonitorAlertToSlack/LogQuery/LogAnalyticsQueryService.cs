@@ -69,8 +69,8 @@ namespace AzureMonitorAlertToSlack.LogQuery
                             return null;
                         }
                     });
-                    dt.Rows.Add(values);
-                    //dtRow.ItemArray = row.Select(o => o).ToArray();
+                    dtRow.ItemArray = values.ToArray();
+                    dt.Rows.Add(dtRow);
                 }
                 if (errors.Any())
                     throw new Exception($"Convert errors: {string.Join(",", errors)}");
