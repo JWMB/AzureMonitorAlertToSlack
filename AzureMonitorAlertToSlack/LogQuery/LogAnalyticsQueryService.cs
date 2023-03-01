@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Azure.Identity;
 using Azure.Monitor.Query;
 using Azure.Monitor.Query.Models;
+using Newtonsoft.Json;
 
 namespace AzureMonitorAlertToSlack.LogQuery
 {
@@ -59,13 +60,17 @@ namespace AzureMonitorAlertToSlack.LogQuery
                     var values = row.Select((o, i) => {
                         if (o == null)
                             return null;
+                        var type = dt.Columns[i].DataType;
                         try
                         {
-                            return Convert.ChangeType(o, dt.Columns[i].DataType);
+                            if (type == typeof(string) && (o is string) == false)
+                                return JsonConvert.SerializeObject(o);
+                            else
+                                return Convert.ChangeType(o, type);
                         }
                         catch (Exception x)
                         {
-                            errors.Add($"{o}/{dt.Columns[i].DataType}: {x.Message}");
+                            errors.Add($"{o}/{type}: {x.Message}");
                             return null;
                         }
                     });
@@ -94,7 +99,7 @@ namespace AzureMonitorAlertToSlack.LogQuery
             { LogsColumnType.Bool, typeof(bool) },
             { LogsColumnType.Datetime, typeof(DateTimeOffset) },
             { LogsColumnType.Decimal, typeof(decimal) },
-            { LogsColumnType.Dynamic, typeof(object) },
+            { LogsColumnType.Dynamic, typeof(string) },
             { LogsColumnType.Guid, typeof(Guid) },
             { LogsColumnType.Int, typeof(int) },
             { LogsColumnType.Long, typeof(long) },
@@ -102,7 +107,8 @@ namespace AzureMonitorAlertToSlack.LogQuery
             //{ LogsColumnType.Real, typeof(Real) },
             { LogsColumnType.Timespan, typeof(TimeSpan) },
         };
-            return columnTypes[type];
+            // Goddamnit Microsoft - there seems to be a type 'BinaryData' which is not included in the SDK's enum!!
+            return columnTypes.TryGetValue(type, out var netType) ? netType : typeof(string);
         }
     }
 
