@@ -55,7 +55,6 @@ namespace AzureMonitorAlertToSlack.LogQuery
                 foreach (var row in table.Rows)
                 {
                     var dtRow = dt.NewRow();
-                    dt.Rows.Add(row);
 
                     var values = row.Select((o, i) => {
                         if (o == null)
