@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace AzureMonitorAlertToSlack.Alerts
 {
@@ -19,5 +20,6 @@ namespace AzureMonitorAlertToSlack.Alerts
         string Text { get; set; }
         string? Color { get; set; }
         string? Icon { get; set; }
+        //Uri? ImageUrl { get; set; }
     }
 }

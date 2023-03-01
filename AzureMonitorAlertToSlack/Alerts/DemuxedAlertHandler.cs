@@ -47,7 +47,7 @@ namespace AzureMonitorAlertToSlack.Alerts
             foreach (var criterion in criteria)
             {
                 var item = CreatePartFromV2ConditionPart(alert, ctx, criterion);
-                var additional = QueryAI(criterion.TargetResourceTypes, criterion.SearchQuery, ctx.Condition.WindowStartTime, ctx.Condition.WindowEndTime)
+                var additional = QueryAIToText(criterion.TargetResourceTypes, criterion.SearchQuery, ctx.Condition.WindowStartTime, ctx.Condition.WindowEndTime)
                     .Result;
                 if (!string.IsNullOrEmpty(additional))
                     item.Text += $"\n{SlackHelpers.Escape(additional!)}";
@@ -114,20 +114,11 @@ namespace AzureMonitorAlertToSlack.Alerts
 
         protected virtual void PostProcess() { }
 
-        protected virtual async Task<string?> QueryAI(string targetResourceTypes, string? query, DateTimeOffset start, DateTimeOffset end)
+        protected virtual async Task<string?> QueryAIToText(string targetResourceTypes, string? query, DateTimeOffset start, DateTimeOffset end)
         {
-            if (logQueryServiceFactory == null || query == null)
-                return null;
-
-            var logQueryService = logQueryServiceFactory.CreateLogQueryService(targetResourceTypes);
-            if (logQueryService == null || string.IsNullOrEmpty(query))
-                return null;
-
-            var cancellation = logQueryServiceFactory.GetCancellationToken();
-
             try
             {
-                var table = await logQueryService.GetQueryAsDataTable(query, start, end, cancellation);
+                var table = await QueryAI(targetResourceTypes, query, start, end);
                 return table == null ? null : RenderDataTable(table);
             }
             catch (Exception ex)
@@ -139,7 +130,26 @@ namespace AzureMonitorAlertToSlack.Alerts
             }
         }
 
-        protected static string RenderDataTable(DataTable dt)
+        protected virtual async Task QueryAIToImage()
+        {
+
+        }
+
+        protected virtual async Task<DataTable?> QueryAI(string targetResourceTypes, string? query, DateTimeOffset start, DateTimeOffset end)
+        {
+            if (logQueryServiceFactory == null || query == null)
+                return null;
+
+            var logQueryService = logQueryServiceFactory.CreateLogQueryService(targetResourceTypes);
+            if (logQueryService == null || string.IsNullOrEmpty(query))
+                return null;
+
+            var cancellation = logQueryServiceFactory.GetCancellationToken();
+
+            return await logQueryService.GetQueryAsDataTable(query, start, end, cancellation);
+        }
+
+        protected virtual string RenderDataTable(DataTable dt)
         {
             var stringifyer = new ConvertToString(40);
             return $"```\n{TableHelpers.TableToMarkdown(dt, (obj, type) => stringifyer.Convert(obj, type), 10)}\n```";
