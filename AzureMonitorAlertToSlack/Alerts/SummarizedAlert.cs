@@ -1,5 +1,5 @@
+using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace AzureMonitorAlertToSlack.Alerts
 {
@@ -9,6 +9,7 @@ namespace AzureMonitorAlertToSlack.Alerts
         public string? TitleLink { get; set; }
         public List<SummarizedAlertPart> Parts { get; set; } = new List<SummarizedAlertPart>();
         public Dictionary<string, string>? CustomProperties { get; set; }
+        public List<Uri> ImageUrls { get; set; } = new List<Uri>();
 
         //public SummarizedAlertPart AddPartWithFallback(SummarizedAlertPart part)
         //{

@@ -9,6 +9,8 @@ namespace AzureMonitorAlertToSlack.Alerts
         string Title { get; set; }
         string? TitleLink { get; set; }
 
+        List<Uri> ImageUrls { get; set; }
+
         List<T> Parts { get; }
         Dictionary<string, string>? CustomProperties { get; set; }
     }
@@ -20,6 +22,5 @@ namespace AzureMonitorAlertToSlack.Alerts
         string Text { get; set; }
         string? Color { get; set; }
         string? Icon { get; set; }
-        //Uri? ImageUrl { get; set; }
     }
 }
