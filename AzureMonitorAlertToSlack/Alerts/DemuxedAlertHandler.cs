@@ -47,17 +47,21 @@ namespace AzureMonitorAlertToSlack.Alerts
             foreach (var criterion in criteria)
             {
                 var item = CreatePartFromV2ConditionPart(alert, ctx, criterion);
-                var additional = QueryAIToText(criterion.TargetResourceTypes, criterion.SearchQuery, ctx.Condition.WindowStartTime, ctx.Condition.WindowEndTime)
-                    .Result;
-                if (!string.IsNullOrEmpty(additional))
-                    item.Text += $"\n{SlackHelpers.Escape(additional!)}";
-
                 item.TitleLink = (criterion.LinkToFilteredSearchResultsUi ?? criterion.LinkToSearchResultsUi)?.ToString();
+
+                PostProcessLogQueryCriterion(item, ctx, criterion);
 
                 Result.Parts.Add(item);
             }
-
             PostProcess();
+        }
+
+        protected virtual void PostProcessLogQueryCriterion(TPart item, LogAlertsV2AlertContext ctx, LogQueryCriteria criterion)
+        {
+            var additional = QueryAIToText(criterion.TargetResourceTypes, criterion.SearchQuery, ctx.Condition.WindowStartTime, ctx.Condition.WindowEndTime)
+                .Result;
+            if (!string.IsNullOrEmpty(additional))
+                item.Text += $"\n{SlackHelpers.Escape(additional!)}";
         }
 
         public virtual void LogAnalyticsAlertContext(Alert alert, LogAnalyticsAlertContext ctx)
