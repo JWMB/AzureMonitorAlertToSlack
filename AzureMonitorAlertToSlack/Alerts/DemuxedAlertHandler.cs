@@ -124,11 +124,14 @@ namespace AzureMonitorAlertToSlack.Alerts
                 return null;
 
             var cancellation = logQueryServiceFactory.GetCancellationToken();
-
             try
             {
                 var table = await logQueryService.GetQueryAsDataTable(query, start, end, cancellation);
                 return table == null ? null : RenderDataTable(table);
+            }
+            catch (TaskCanceledException tcEx)
+            {
+                return "AIQuery - timeout";
             }
             catch (Exception ex)
             {
