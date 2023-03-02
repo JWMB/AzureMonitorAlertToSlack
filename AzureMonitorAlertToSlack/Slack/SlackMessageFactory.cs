@@ -46,6 +46,10 @@ namespace AzureMonitorAlertToSlack.Slack
                     }
                 }
             };
+            if (summary.ImageUrls.Any())
+            {
+                blocks.AddRange(summary.ImageUrls.Select(o => new ImageBlock { ImageUrl = o.AbsoluteUri, AltText = "n/a" }));
+            }
 
             foreach (var item in blocks)
             {
