@@ -28,6 +28,7 @@ namespace AzureMonitorAlertToSlack.Slack
                 //Text = info.Text,
                 Color = string.IsNullOrEmpty(part.Color) ? "#FF5500" : part.Color,
                 Fallback = ConvertToString.Truncate(part.Text, 100),
+                // Goddamnit, Slack! Width is fixed when using blocks... https://stackoverflow.com/questions/57438097/how-to-make-slack-api-block-kit-take-up-the-entire-width-of-the-slack-window
                 Blocks = CreateSlackBlocks(part, summary)
             };
         }
