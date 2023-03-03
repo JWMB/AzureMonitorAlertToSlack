@@ -138,11 +138,6 @@ namespace AzureMonitorAlertToSlack.Alerts
             }
         }
 
-        protected virtual async Task QueryAIToImage()
-        {
-
-        }
-
         protected virtual async Task<DataTable?> QueryAI(string targetResourceTypes, string? query, DateTimeOffset start, DateTimeOffset end)
         {
             if (logQueryServiceFactory == null || query == null)
