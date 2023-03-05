@@ -36,7 +36,7 @@ namespace AzureMonitorAlertToSlack.Slack
         {
             return new Message
             {
-                Text = $"*{MakeLink(part.Title ?? "N/A", part.TitleLink)}*\n{part.Text}"
+                Text = $"*{MakeLink(part.Title ?? summary.Title ?? "N/A", part.TitleLink)}*\n{part.Text}"
             };
         }
 
