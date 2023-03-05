@@ -30,7 +30,7 @@ namespace AzureMonitorAlertToSlack.Tests
 
             item.Text = SlackHelpers.Escape(item.Text);
             var messageFactory = new SlackMessageFactory<SummarizedAlert, SummarizedAlertPart>();
-            var msg = messageFactory.CreateMessage(new SummarizedAlert { Parts = new[] { item }.ToList() });
+            var msg = messageFactory.CreateMessages(new SummarizedAlert { Parts = new[] { item }.ToList() });
 
             ISlackClient sender = new SlackClient(SlackClient.Configure(new HttpClient()), new SlackSettings { DefaultWebhook = config["SlackWebhookUrl"] });
             await Should.NotThrowAsync(async () => await sender.Send(msg));
@@ -48,7 +48,7 @@ namespace AzureMonitorAlertToSlack.Tests
 
             item.Text = SlackHelpers.Escape(item.Text);
             var messageFactory = new SlackMessageFactory<SummarizedAlert, SummarizedAlertPart>();
-            var msg = messageFactory.CreateMessage(new SummarizedAlert
+            var msg = messageFactory.CreateMessages(new SummarizedAlert
             {
                 Parts = new[] { item }.ToList(),
                 ImageUrls = new List<Uri> {

@@ -1,5 +1,6 @@
 ﻿using AzureMonitorAlertToSlack.Alerts;
 using SlackNet.WebApi;
+using System.Collections.Generic;
 
 namespace AzureMonitorAlertToSlack.Slack
 {
@@ -7,6 +8,6 @@ namespace AzureMonitorAlertToSlack.Slack
         where T : ISummarizedAlert<TPart>, new()
         where TPart : ISummarizedAlertPart, new()
     {
-        Message CreateMessage(T summary);
+        List<Message> CreateMessages(T summary);
     }
 }

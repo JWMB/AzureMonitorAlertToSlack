@@ -11,25 +11,44 @@ namespace AzureMonitorAlertToSlack.Slack
         where T : ISummarizedAlert<TPart>, new()
         where TPart : ISummarizedAlertPart, new()
     {
-        public Message CreateMessage(T summary)
+        public virtual List<Message> CreateMessages(T summary)
         {
-            return new Message
-            {
-                Attachments = summary.Parts.Select(o => CreateSlackAttachment(o, summary)).ToList(),
-            };
+            return summary.Parts.Select(o => CreateMessageFromPart(o, summary)).ToList();
+            //return new[]{ new Message {
+            //    Attachments = summary.Parts.Select(o => CreateSlackAttachment(o, summary)).ToList(),
+            //}}.ToList();
         }
 
-        private static Attachment CreateSlackAttachment(TPart part, T summary)
+        protected virtual Attachment CreateAttachment(TPart part, T summary) => CreateNonBlockAttachment(part, summary);
+
+        protected virtual Attachment CreateBlockAttachment(TPart part, T summary)
         {
             return new Attachment
             {
-                //Title = info.Title,
-                //TitleLink = info.TitleLink,
-                //Text = info.Text,
                 Color = string.IsNullOrEmpty(part.Color) ? "#FF5500" : part.Color,
                 Fallback = ConvertToString.Truncate(part.Text, 100),
                 // Goddamnit, Slack! Width is fixed when using blocks... https://stackoverflow.com/questions/57438097/how-to-make-slack-api-block-kit-take-up-the-entire-width-of-the-slack-window
                 Blocks = CreateSlackBlocks(part, summary)
+            };
+        }
+
+        protected virtual Message CreateMessageFromPart(TPart part, T summary)
+        {
+            return new Message
+            {
+                Text = $"*{MakeLink(part.Title ?? "N/A", part.TitleLink)}*\n{part.Text}"
+            };
+        }
+
+        protected virtual Attachment CreateNonBlockAttachment(TPart part, T summary)
+        {
+            return new Attachment
+            {
+                Title = part.Title,
+                TitleLink = part.TitleLink,
+                Text = part.Text,
+                Color = string.IsNullOrEmpty(part.Color) ? "#FF5500" : part.Color,
+                Fallback = ConvertToString.Truncate(part.Text, 100),
             };
         }
 
@@ -64,9 +83,9 @@ namespace AzureMonitorAlertToSlack.Slack
                 }
             }
             return blocks;
-
-            string FallbackIfEmpty(string? value, string? fallback) => (string.IsNullOrEmpty(value) ? fallback : value!) ?? string.Empty;
-            string MakeLink(string text, string? url) => string.IsNullOrEmpty(url) ? text : $"<{url}|{text}>";
         }
+
+        public static string FallbackIfEmpty(string? value, string? fallback) => (string.IsNullOrEmpty(value) ? fallback : value!) ?? string.Empty;
+        public static string MakeLink(string text, string? url) => string.IsNullOrEmpty(url) ? text : $"<{url}|{text}>";
     }
 }

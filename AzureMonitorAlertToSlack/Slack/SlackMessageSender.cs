@@ -19,7 +19,7 @@ namespace AzureMonitorAlertToSlack.Slack
 
         public virtual async Task SendMessage(T parts)
         {
-            var slackBody = messageFactory.CreateMessage(parts);
+            var slackBody = messageFactory.CreateMessages(parts);
             await sender.Send(slackBody);
         }
     }
