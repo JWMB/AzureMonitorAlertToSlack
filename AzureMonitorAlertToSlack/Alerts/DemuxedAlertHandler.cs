@@ -155,7 +155,7 @@ namespace AzureMonitorAlertToSlack.Alerts
         protected virtual string RenderDataTable(DataTable dt)
         {
             var stringifyer = new ConvertToString(40);
-            return $"```\n{TableHelpers.TableToMarkdown(dt, (obj, type) => stringifyer.Convert(obj, type), 10)}\n```";
+            return $"```\n{TableHelpers.TableToMarkdown(dt, (obj, col) => stringifyer.Convert(obj, col.DataType), 10)}\n```";
         }
     }
 }

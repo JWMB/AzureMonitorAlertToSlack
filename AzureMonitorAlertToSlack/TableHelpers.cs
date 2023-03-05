@@ -15,7 +15,7 @@ namespace AzureMonitorAlertToSlack
             this.maxColumnLength = maxColumnLength;
         }
 
-        public string Convert(object obj, Type type)
+        public string Convert(object obj, Type type, int? maxLength = null)
         {
             if (obj.GetType() == type)
             {
@@ -32,9 +32,9 @@ namespace AzureMonitorAlertToSlack
                     TimeSpan val => Convert(val),
                     object val => val.ToString()
                 };
-                return PostProcess(str ?? obj.ToString() ?? "", obj, type);
+                obj = str;
             }
-            return PostProcess(obj.ToString() ?? "", obj, type);
+            return PostProcess(obj.ToString() ?? "", obj, type, maxLength);
         }
 
         public virtual string Convert(bool obj) => obj ? "1" : "0";
@@ -47,13 +47,13 @@ namespace AzureMonitorAlertToSlack
         public virtual string Convert(string obj) => obj;
         public virtual string Convert(TimeSpan obj) => obj.ToString();
 
-        public virtual string PostProcess(string converted, object obj, Type type) => Truncate(converted, maxColumnLength);
+        public virtual string PostProcess(string converted, object obj, Type type, int? maxLength = null) => Truncate(converted, maxLength ?? maxColumnLength);
         public static string Truncate(string str, int maxLength, string? ellipsis = null) => str.Length > maxLength ? str.Remove(maxLength) : str;
     }
 
     public class TableHelpers
     {
-        public static string TableToMarkdown(DataTable dt, Func<object, Type, string> stringify, int maxRows = 100)
+        public static string TableToMarkdown(DataTable dt, Func<object, DataColumn, string> stringify, int maxRows = 100)
         {
             var cols = new List<DataColumn>();
             foreach (DataColumn col in dt.Columns)
@@ -64,7 +64,7 @@ namespace AzureMonitorAlertToSlack
                 rows.Add(row);
 
             var allStrings = new[] { cols.Select(o => o.ColumnName).ToList() }
-                .Concat(rows.Take(maxRows).Select(row => cols.Select(col => stringify(row[col], col.DataType))));
+                .Concat(rows.Take(maxRows).Select(row => cols.Select(col => stringify(row[col], col))));
 
             return TableToMarkdown(allStrings);
         }

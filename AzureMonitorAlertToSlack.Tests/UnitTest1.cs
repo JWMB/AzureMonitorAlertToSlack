@@ -65,7 +65,7 @@ Heartbeat/MMC: 3 > 0 (16:21:24 UTC:+00:00)
             var table = CreateTable(localNow);
 
             var stringifyer = new CustomConverter();
-            var rendered = TableHelpers.TableToMarkdown(table, stringifyer.Convert);
+            var rendered = TableHelpers.TableToMarkdown(table, (o, col) => stringifyer.Convert(o, col.DataType));
 
             var expected = $@"
 |Id   |Name           |Timespan   |DateTime |dynamic        |
