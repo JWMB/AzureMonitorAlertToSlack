@@ -6,6 +6,7 @@ using AzureMonitorAlertToSlack.LogQuery;
 
 namespace AzureMonitorAlertToSlack.Tests
 {
+    [Trait("Category", "Integration")]
     public class AppInsightsQueryTests
     {
         [SkippableFact]

@@ -1,11 +1,11 @@
-﻿using AzureMonitorAlertToSlack;
-using AzureMonitorAlertToSlack.Alerts;
+﻿using AzureMonitorAlertToSlack.Alerts;
 using AzureMonitorAlertToSlack.Slack;
 using Microsoft.Extensions.Configuration;
 using Shouldly;
 
 namespace AzureMonitorAlertToSlack.Tests
 {
+    [Trait("Category", "Integration")]
     public class SlackTests
     {
         private IConfigurationRoot config;
@@ -61,5 +61,18 @@ namespace AzureMonitorAlertToSlack.Tests
             await Should.NotThrowAsync(async () => await sender.Send(msg));
         }
 
+
+        [SkippableFact]
+        public async Task Slack_MultipleMessages()
+        {
+            Skip.IfNot(System.Diagnostics.Debugger.IsAttached);
+
+            var parts = Enumerable.Range(0, 2).Select(o => new SummarizedAlertPart { Title = $"UNIT TEST", Text = $"Index {o}" });
+            var messageFactory = new SlackMessageFactory<SummarizedAlert, SummarizedAlertPart>();
+            var msg = messageFactory.CreateMessages(new SummarizedAlert { Parts = parts.ToList() });
+
+            ISlackClient sender = new SlackClient(SlackClient.Configure(new HttpClient()), new SlackSettings { DefaultWebhook = config["SlackWebhookUrl"] });
+            await Should.NotThrowAsync(async () => await sender.Send(msg));
+        }
     }
 }
