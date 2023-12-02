@@ -72,7 +72,7 @@ traces
             var azureUsername = config[envVarName];
             if (envVarName != null)
                 Environment.SetEnvironmentVariable(envVarName, azureUsername);
-            return new LogAnalyticsQuerySettings { WorkspaceId = config["WorkspaceId"] };
+            return new LogAnalyticsQuerySettings { WorkspaceId = config["WorkspaceId"]! };
         }
 
         private IConfigurationRoot CreateConfig()
@@ -87,7 +87,7 @@ traces
             var config = CreateConfig();
 
             var client = new ApplicationInsightsClient(ApplicationInsightsClient.ConfigureClient(
-                new HttpClient(), new ApplicationInsightsQuerySettings { AppId = config["ApplicationInsightsAppId"], ApiKey = config["ApplicationInsightsApiKey"] }));
+                new HttpClient(), new ApplicationInsightsQuerySettings { AppId = config["ApplicationInsightsAppId"]!, ApiKey = config["ApplicationInsightsApiKey"]! }));
             return new AppInsightsQueryService(client);
         }
     }

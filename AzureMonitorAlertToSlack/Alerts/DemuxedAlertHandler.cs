@@ -125,7 +125,7 @@ namespace AzureMonitorAlertToSlack.Alerts
                 var table = await QueryAI(targetResourceTypes, query, start, end);
                 return table == null ? null : RenderDataTable(table);
             }
-            catch (TaskCanceledException tcEx)
+            catch (TaskCanceledException)
             {
                 return "AIQuery - timeout";
             }
